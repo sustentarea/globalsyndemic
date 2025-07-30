@@ -1,0 +1,20 @@
+; globals [
+;   patch-coordinates
+;   raise-lower-prec
+;   raise-lower-tmax
+;   raise-lower-tmin
+; ]
+
+to update-food-vars
+  foreach (patch-coordinates) [
+    #i -> ask patch (first #i) (last #i) [
+      ls:let #i #i
+      set grains-yield [[grains-yield] of patch (first #i) (last #i)] ls:of foodclim-ls-model
+      set protein-yield [[protein-yield] of patch (first #i) (last #i)] ls:of foodclim-ls-model
+      set dairy-yield [[dairy-yield] of patch (first #i) (last #i)] ls:of foodclim-ls-model
+      set non-leafy-veg-yield [[non-leafy-veg-yield] of patch (first #i) (last #i)] ls:of foodclim-ls-model
+      set leafy-veg-yield [[leafy-veg-yield] of patch (first #i) (last #i)] ls:of foodclim-ls-model
+      set fruits-yield [[fruits-yield] of patch (first #i) (last #i)] ls:of foodclim-ls-model
+    ]
+  ]
+end

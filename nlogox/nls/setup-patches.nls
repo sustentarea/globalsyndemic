@@ -1,0 +1,45 @@
+; __includes ["compute-food-yield.nls" "update-patches.nls"]
+
+; patches-own [
+;   value
+;   tmin
+;   tmax
+;   prec
+;   latitude
+;   longitude
+;   grains-yield
+;   protein-yield
+;   non-leafy-veg-yield
+;   leafy-veg-yield
+;   fruits-yield
+;   dairy-yield
+; ]
+
+to setup-patches
+  foreach (patch-coordinates) [
+    #i -> ask patch (first #i) (last #i) [
+      ls:let #i #i
+      set grains-yield [[grains-yield] of patch (first #i) (last #i)] ls:of foodclim-ls-model
+      set protein-yield [[protein-yield] of patch (first #i) (last #i)] ls:of foodclim-ls-model
+      set dairy-yield [[dairy-yield] of patch (first #i) (last #i)] ls:of foodclim-ls-model
+      set non-leafy-veg-yield [[non-leafy-veg-yield] of patch (first #i) (last #i)] ls:of foodclim-ls-model
+      set leafy-veg-yield [[leafy-veg-yield] of patch (first #i) (last #i)] ls:of foodclim-ls-model
+      set fruits-yield [[fruits-yield] of patch (first #i) (last #i)] ls:of foodclim-ls-model
+      set latitude [[latitude] of patch (first #i) (last #i)] ls:of foodclim-ls-model
+      set longitude [[longitude] of patch (first #i) (last #i)] ls:of foodclim-ls-model
+
+      if (is-missing? grains-yield) [
+        set healthy? grains-yield
+        set grains-yield grains-yield
+        set protein-yield grains-yield
+        set dairy-yield grains-yield
+        set non-leafy-veg-yield grains-yield
+        set leafy-veg-yield grains-yield
+        set fruits-yield grains-yield
+      ]
+    ]
+  ]
+
+  compute-food-dietary-value
+  update-patches
+end

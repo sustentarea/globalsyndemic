@@ -1,0 +1,54 @@
+; __includes ["check-string.nls" "check-true.nls"]
+
+; globals [
+;   *-intercept
+;   *-mean-yield-beta
+;   *-lat-beta
+;   *-lon-beta
+;   *-random-threshold
+;   *-yield-baseline
+;   *-yield-baseline-rel
+;   add-random?
+;   shock
+;   shock-threshold
+;   temp
+; ]
+
+to compute-dietary-value [#food]
+  let month-num str-to-num-month month
+
+  ask patches with [not is-missing? runresult (word #food "-yield")] [
+    ifelse (
+      (not is-missing? latitude) and
+      (not is-missing? longitude)
+     ) [
+      ; `temp` is a temporary variable created to use with `run`.`
+      set temp compute-dietary-response
+        runresult (word #food "-intercept")
+        runresult (word #food "-mean-yield-beta")
+        mean [runresult (word #food "-yield")] of patches in-radius 30 with [
+          not is-missing? runresult (word #food "-yield")
+        ]
+        runresult (word #food "-lat-beta")
+        latitude
+        runresult (word #food "-lon-beta")
+        longitude
+        runresult (word #food "-random-threshold")
+        add-random?
+
+      if (is-true? shock) [
+        let random-mult random-float shock-threshold
+        set temp (1 - random-mult) * temp
+      ]
+
+      if (temp < 0) [set temp 0]
+      run (word "set " #food "-intake temp")
+      ; End of the `if` statement.
+    ] [
+      ; To assign NaN values to patches.
+      set temp latitude
+
+      run (word "set " #food "-yield temp")
+    ]
+  ]
+end

@@ -1,0 +1,7 @@
+to-report as-list [#x]
+  ifelse (is-list? #x) [
+    report #x
+  ] [
+    report (list #x)
+  ]
+end

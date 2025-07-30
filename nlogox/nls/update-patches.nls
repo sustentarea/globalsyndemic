@@ -1,0 +1,36 @@
+; __includes ["check-true.nls" "lookup-food-group.nls"]
+
+; globals [
+;   month
+;   background-color
+;   black-min
+;   black-value
+;   max-value
+;   min-value
+;   white-max
+;   white-value
+;   world-view
+; ]
+
+to update-patches
+  ask patches [
+    ifelse (not is-missing? grains-yield) [
+      ifelse (
+        (grains-intake < 0.3) or
+        (protein-intake < 0.15) or
+        (dairy-intake < 0.1) or
+        (non-leafy-veg-intake < 0.2) or
+        (leafy-veg-intake < 0.15) or
+        (fruits-intake < 0.1)
+      ) [
+        set healthy? ifelse-value ((random-float 1) < 0.75) [false] [true]
+      ] [
+        set healthy? true
+      ]
+      
+      set pcolor ifelse-value (healthy? = true) [blue] [red]
+    ] [
+      set pcolor background-color
+    ]
+  ]
+end

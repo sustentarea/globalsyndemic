@@ -1,0 +1,29 @@
+to-report is-missing? [#x]
+  (ifelse (#x = "NA") [
+    report true
+  ] ((is-boolean? #x) or (is-string? #x)) [
+    report false
+  ] ((not (#x <= 0)) and (not (#x >= 0))) [
+    report true
+  ] [
+    report false
+  ])
+end
+
+to-report test-missing [#x]
+  report is-missing? #x
+end
+
+to-report check-missing [#x]
+  ifelse (is-missing? #x) [
+    report true
+  ] [
+    report "The value is not missing."
+  ]
+end
+
+to assert-missing [#x]
+  if (not is-missing? #x) [
+    error check-missing #x
+  ]
+end

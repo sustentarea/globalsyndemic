@@ -1,0 +1,46 @@
+; __includdes [
+;   "check-true.nls"
+;   "compute-food-yield.nls"
+;   "update-climate-vars.nls"
+;   "update-patches.nls"
+; ]
+
+; extensions [ls]
+; globals [flip-data-series? flip-index month start-month start-year year]
+
+to go-back
+  ls:ask ls:models [go-back]
+
+  if (month = [month] ls:of foodclim-ls-model) [
+    ifelse (
+      (is-true? flip-data-series?) and
+      ([data-series] ls:of foodclim-ls-model = "Future climate data")
+    ) [
+      ls:let #index flip-index
+      ls:let #year start-year
+      ls:let #month start-month
+
+      ls:ask ls:models [
+        set data-series "Historical monthly weather data"
+        set start-year #year
+        set start-month #month
+
+        setup
+
+        set index #index
+        set year 2021
+        set month 12
+      ]
+    ] [
+      stop
+    ]
+  ]
+
+  set index [index] ls:of foodclim-ls-model
+  set year [year] ls:of foodclim-ls-model
+  set month [month] ls:of foodclim-ls-model
+
+  update-food-vars
+  compute-food-dietary-value
+  update-patches
+end

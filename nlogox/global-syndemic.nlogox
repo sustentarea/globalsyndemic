@@ -1,0 +1,1536 @@
+<?xml version="1.0" encoding="utf-8"?>
+<model version="NetLogo 7.0.0-beta2" snapToGrid="true">
+  <code><![CDATA[; FoodClim: Food Yield Responses to Climate Change in Netlogo
+;
+; Version: 2025-07-30 0.0.0.9003
+; Authors: Daniel Vartanian, Leandro Garcia, & Aline M. de Carvalho
+; Maintainer: Daniel Vartanian <https://github.com/danielvartan>
+; License: GPLv3 <https://www.gnu.org/licenses/gpl-3.0>
+; Repository: <https://github.com/sustentarea/foodclim>
+;
+; Require NetLogo >= 7.0 and the LogoClim NetLogo model
+; Required NetLogo extensions: `ls` and `string`
+
+__includes [
+  "nls/as-list.nls"
+  "nls/as-string.nls"
+  "nls/check-all.nls"
+  "nls/check-atomic.nls"
+  "nls/check-between.nls"
+  "nls/check-choice.nls"
+  "nls/check-empty.nls"
+  "nls/check-integer.nls"
+  "nls/check-list.nls"
+  "nls/check-logical.nls"
+  "nls/check-missing.nls"
+  "nls/check-nan.nls"
+  "nls/check-number.nls"
+  "nls/check-start-year.nls"
+  "nls/check-string.nls"
+  "nls/check-string-or-integer.nls"
+  "nls/check-true.nls"
+  "nls/collapse.nls"
+  "nls/combine.nls"
+  "nls/compute-random-mult.nls"
+  "nls/compute-dietary-value.nls"
+  "nls/compute-dietary-response.nls"
+  "nls/compute-food-dietary-value.nls"
+  "nls/go-back.nls"
+  "nls/halt.nls"
+  "nls/num-to-str-month.nls"
+  "nls/plot-pen-color.nls"
+  "nls/setup-foodclim.nls"
+  "nls/setup-patches.nls"
+  "nls/setup-variables.nls"
+  "nls/setup-world.nls"
+  "nls/single-quote.nls"
+  "nls/str-extract.nls"
+  "nls/str-to-num-month.nls"
+  "nls/update-food-vars.nls"
+  "nls/update-patches.nls"
+]
+
+extensions [
+  ls
+  string
+]
+
+globals [
+  index
+  month
+  year
+  baseline-period
+  max-value
+  min-value
+  range-pxcor
+  range-pycor
+  patch-coordinates
+  plot-x-max-range
+  foodclim-ls-model
+  flip-index ; To use with `flip-data-series?`.
+  temp ; To use with `run`.
+  seed
+  settings
+]
+
+patches-own [
+  healthy?
+  latitude
+  longitude
+  grains-yield
+  grains-mean-yield
+  grains-intake
+  protein-yield
+  protein-mean-yield
+  protein-intake
+  dairy-yield
+  dairy-mean-yield
+  dairy-intake
+  non-leafy-veg-yield
+  non-leafy-veg-mean-yield
+  non-leafy-veg-intake
+  leafy-veg-yield
+  leafy-veg-mean-yield
+  leafy-veg-intake
+  fruits-yield
+  fruits-mean-yield
+  fruits-intake
+]
+
+to setup [#seed]
+  clear-all
+
+  set seed #seed
+  random-seed seed
+
+  ls:reset
+
+  assert-start-year
+  
+  setup-foodclim
+
+  setup-world
+  setup-variables
+  setup-patches
+
+  reset-ticks
+end
+
+to go [#tick? #wait?]
+  assert-logical #tick?
+  assert-logical #wait?
+
+  ls:ask ls:models [go true true]
+
+  if (month = [month] ls:of foodclim-ls-model) [
+    ifelse (
+      (is-true? flip-data-series?) and
+      ([data-series] ls:of foodclim-ls-model != "Future climate data")
+    ) [
+      set flip-index index
+
+      ls:let #global-climate-model global-climate-model
+      ls:let #shared-socioeconomic-pathway shared-socioeconomic-pathway
+
+      ls:ask ls:models [
+        set data-series "Future climate data"
+        set global-climate-model #global-climate-model
+        set shared-socioeconomic-pathway #shared-socioeconomic-pathway
+        set start-month "January"
+        set start-year 2021
+
+        setup
+      ]
+    ] [
+      stop
+    ]
+  ]
+ 
+  set index [index] ls:of foodclim-ls-model
+  set year [year] ls:of foodclim-ls-model
+  set month [month] ls:of foodclim-ls-model
+  set plot-x-max-range ceiling ((ticks + 1) * 1.25)
+
+  update-food-vars
+  compute-food-dietary-value
+  update-patches
+
+  if (#tick? = true) [tick]
+end]]></code>
+  <widgets>
+    <view x="525" wrappingAllowedX="false" y="10" frameRate="30.0" minPycor="-117" height="542" showTickCounter="true" patchSize="2.309963099630996" fontSize="10" wrappingAllowedY="false" width="626" tickCounterLabel="Months" maxPycor="117" updateMode="0" maxPxcor="135" minPxcor="-135"></view>
+    <monitor x="1420" precision="0" y="10" height="60" fontSize="11" width="120" display="Year">ifelse-value
+  ((settings = 0))
+  ["NA"]
+  [year]</monitor>
+    <monitor x="1545" precision="0" y="10" height="60" fontSize="11" width="125" display="Month">ifelse-value
+  ((settings = 0))
+  ["NA"]
+  [month]</monitor>
+    <monitor x="1165" precision="0" y="10" height="60" fontSize="11" width="250" display="Data series">ifelse-value
+  ((settings = 0))
+  ["NA"]
+  [data-series]</monitor>
+    <button x="390" actionKey="G" y="10" height="40" disableUntilTicks="false" forever="true" kind="Observer" width="125" display="Go">go true true</button>
+    <button x="265" actionKey="S" y="10" height="40" disableUntilTicks="false" forever="false" kind="Observer" width="120" display="Setup">setup new-seed</button>
+    <button x="265" actionKey="A" y="55" height="40" disableUntilTicks="false" forever="false" kind="Observer" width="120" display="Go back">go-back</button>
+    <button x="390" actionKey="D" y="55" height="40" disableUntilTicks="false" forever="false" kind="Observer" width="125" display="Go forward">go false false</button>
+    <chooser x="10" y="10" height="60" variable="data-series" current="0" width="250" display="data-series">
+      <choice type="string" value="Historical monthly weather data"></choice>
+      <choice type="string" value="Future climate data"></choice>
+    </chooser>
+    <chooser x="10" y="140" height="60" variable="global-climate-model" current="2" width="250" display="global-climate-model">
+      <choice type="string" value="ACCESS-CM2"></choice>
+      <choice type="string" value="BCC-CSM2-MR"></choice>
+      <choice type="string" value="CMCC-ESM2"></choice>
+      <choice type="string" value="EC-Earth3-Veg"></choice>
+      <choice type="string" value="FIO-ESM-2-0"></choice>
+      <choice type="string" value="GFDL-ESM4"></choice>
+      <choice type="string" value="GISS-E2-1-G"></choice>
+      <choice type="string" value="HadGEM3-GC31-LL"></choice>
+      <choice type="string" value="INM-CM5-0"></choice>
+      <choice type="string" value="IPSL-CM6A-LR"></choice>
+      <choice type="string" value="MIROC6"></choice>
+      <choice type="string" value="MPI-ESM1-2-HR"></choice>
+      <choice type="string" value="MRI-ESM2-0"></choice>
+      <choice type="string" value="UKESM1-0-LL"></choice>
+    </chooser>
+    <chooser x="10" y="75" height="60" variable="data-resolution" current="3" width="250" display="data-resolution">
+      <choice type="string" value="30 seconds (~1 km2  at the equator)"></choice>
+      <choice type="string" value="2.5 minutes (~21 km2 at the equator)"></choice>
+      <choice type="string" value="5 minutes (~85 km2 at the equator)"></choice>
+      <choice type="string" value="10 minutes (~340 km2 at the equator)"></choice>
+    </chooser>
+    <chooser x="10" y="270" height="60" variable="start-month" current="0" width="250" display="start-month">
+      <choice type="string" value="January"></choice>
+      <choice type="string" value="February"></choice>
+      <choice type="string" value="March"></choice>
+      <choice type="string" value="April"></choice>
+      <choice type="string" value="May"></choice>
+      <choice type="string" value="June"></choice>
+      <choice type="string" value="July"></choice>
+      <choice type="string" value="August"></choice>
+      <choice type="string" value="September"></choice>
+      <choice type="string" value="October"></choice>
+      <choice type="string" value="November"></choice>
+      <choice type="string" value="December"></choice>
+    </chooser>
+    <input x="10" multiline="false" y="335" height="60" variable="start-year" type="number" width="250">2016.0</input>
+    <chooser x="10" y="205" height="60" variable="shared-socioeconomic-pathway" current="3" width="250" display="shared-socioeconomic-pathway">
+      <choice type="string" value="SSP-126"></choice>
+      <choice type="string" value="SSP-245"></choice>
+      <choice type="string" value="SSP-370"></choice>
+      <choice type="string" value="SSP-585"></choice>
+    </chooser>
+    <switch x="10" y="400" height="40" on="true" variable="flip-data-series?" width="250" display="flip-data-series?"></switch>
+    <switch x="10" y="445" height="40" on="true" variable="add-random?" width="250" display="add-random?"></switch>
+    <plot x="1165" autoPlotX="true" yMax="0.0" autoPlotY="true" yAxis="Mean" y="75" xMin="0.0" height="260" legend="true" xMax="0.0" yMin="0.0" width="505" xAxis="Months" display="Dietary Intake">
+      <setup>set-plot-y-range 0 1</setup>
+      <update>set-plot-x-range 0 plot-x-max-range</update>
+      <pen interval="1.0" mode="0" display="Grains" color="-955883" legend="true">
+        <setup></setup>
+        <update>let pen-color orange
+
+if (
+  (flip-data-series? = true) and
+  (data-series != "Future climate data") and
+  ([data-series] ls:of foodclim-ls-model = "Future climate data")
+  )[
+  set-plot-pen-color pen-color + 3
+]
+
+plot mean [grains-intake] of patches with [not is-missing? grains-intake]</update>
+      </pen>
+      <pen interval="1.0" mode="0" display="Protein" color="-8630108" legend="true">
+        <setup></setup>
+        <update>let pen-color violet
+
+if (
+  (flip-data-series? = true) and
+  (data-series != "Future climate data") and
+  ([data-series] ls:of foodclim-ls-model = "Future climate data")
+  )[
+  set-plot-pen-color pen-color + 3
+]
+
+plot mean [protein-intake] of patches with [not is-missing? protein-intake]</update>
+      </pen>
+      <pen interval="1.0" mode="0" display="Dairy" color="-13345367" legend="true">
+        <setup></setup>
+        <update>let pen-color blue
+
+if (
+  (flip-data-series? = true) and
+  (data-series != "Future climate data") and
+  ([data-series] ls:of foodclim-ls-model = "Future climate data")
+  )[
+  set-plot-pen-color pen-color + 3
+]
+
+plot mean [dairy-intake] of patches with [not is-missing? dairy-intake]</update>
+      </pen>
+      <pen interval="1.0" mode="0" display="Non-leafy veg." color="-13840069" legend="true">
+        <setup></setup>
+        <update>let pen-color lime
+
+if (
+  (flip-data-series? = true) and
+  (data-series != "Future climate data") and
+  ([data-series] ls:of foodclim-ls-model = "Future climate data")
+  )[
+  set-plot-pen-color pen-color + 3
+]
+
+plot mean [non-leafy-veg-intake] of patches with [not is-missing? non-leafy-veg-intake]</update>
+      </pen>
+      <pen interval="1.0" mode="0" display="Leafy veg." color="-14835848" legend="true">
+        <setup></setup>
+        <update>let pen-color turquoise
+
+if (
+  (flip-data-series? = true) and
+  (data-series != "Future climate data") and
+  ([data-series] ls:of foodclim-ls-model = "Future climate data")
+  )[
+  set-plot-pen-color pen-color + 3
+]
+
+plot mean [leafy-veg-intake] of patches with [not is-missing? leafy-veg-intake]</update>
+      </pen>
+      <pen interval="1.0" mode="0" display="Fruits" color="-2674135" legend="true">
+        <setup></setup>
+        <update>let pen-color red
+
+if (
+  (flip-data-series? = true) and
+  (data-series != "Future climate data") and
+  ([data-series] ls:of foodclim-ls-model = "Future climate data")
+  )[
+  set-plot-pen-color pen-color + 3
+]
+
+plot mean [fruits-intake] of patches with [not is-missing? fruits-intake]</update>
+      </pen>
+      <pen interval="1.0" mode="0" display="(Year indicator)" color="-16777216" legend="false">
+        <setup></setup>
+        <update>ifelse (
+  (start-month = month) or
+  ((index = 1) and (flip-index = 0))
+) [
+  set-plot-pen-color black
+] [
+  set-plot-pen-color white
+]
+
+plot 1</update>
+      </pen>
+    </plot>
+    <switch x="265" y="100" height="40" on="false" variable="shock" width="250" display="shock"></switch>
+    <input x="265" multiline="false" y="365" height="60" variable="background-color" type="color" width="250">9.2</input>
+    <slider x="265" step="0.1" y="200" max="5" width="250" display="raise-lower-tmin" height="50" min="-5" direction="Horizontal" default="0.0" variable="raise-lower-tmin" units="ºC"></slider>
+    <slider x="265" step="0.1" y="255" max="5" width="250" display="raise-lower-tmax" height="50" min="-5" direction="Horizontal" default="0.0" variable="raise-lower-tmax" units="ºC"></slider>
+    <slider x="265" step="0.1" y="310" max="250" width="250" display="raise-lower-prec" height="50" min="-250" direction="Horizontal" default="0.0" variable="raise-lower-prec" units="mm"></slider>
+    <slider x="265" step="0.1" y="145" max="5" width="250" display="shock-threshold" height="50" min="0" direction="Horizontal" default="1.0" variable="shock-threshold"></slider>
+    <button x="10" y="555" height="40" disableUntilTicks="false" forever="false" kind="Observer" width="250" display="Select FoodClim file">set foodclim-path user-file</button>
+    <input x="10" multiline="false" y="490" height="60" variable="foodclim-path" type="string" width="250">../../foodclim/nlogox/foodclim.nlogox</input>
+    <plot x="580" autoPlotX="true" yMax="0.0" autoPlotY="true" yAxis="Mean" y="730" xMin="0.0" height="200" legend="false" xMax="0.0" yMin="0.0" width="505" xAxis="Months" display="Protein (Dietary Intake)">
+      <setup>set-plot-y-range 0 1</setup>
+      <update>set-plot-x-range 0 plot-x-max-range</update>
+      <pen interval="1.0" mode="0" display="Protein" color="-8630108" legend="true">
+        <setup></setup>
+        <update>let pen-color violet
+
+if (
+  (flip-data-series? = true) and
+  (data-series != "Future climate data") and
+  ([data-series] ls:of foodclim-ls-model = "Future climate data")
+  )[
+  set-plot-pen-color pen-color + 3
+]
+
+plot mean [protein-intake] of patches with [not is-missing? protein-intake]</update>
+      </pen>
+      <pen interval="1.0" mode="0" display="(Year indicator)" color="-16777216" legend="false">
+        <setup></setup>
+        <update>ifelse (
+  (start-month = month) or
+  ((index = 1) and (flip-index = 0))
+) [
+  set-plot-pen-color black
+] [
+  set-plot-pen-color white
+]
+
+plot 1</update>
+      </pen>
+    </plot>
+    <slider x="1095" step="0.00001" y="935" max="5" width="250" display="dairy-intercept" height="50" min="-5" direction="Horizontal" default="1.96" variable="dairy-intercept" units="kg/ha"></slider>
+    <slider x="1350" step="0.00001" y="935" max="5" display="dairy-mean-yield-beta" height="50" min="-5" direction="Horizontal" default="0.03646" variable="dairy-mean-yield-beta" units="kg/ha per °C" width="250" sizeVersion="0"></slider>
+    <slider x="580" step="0.00001" y="935" max="5" width="250" display="protein-intercept" height="50" min="-5" direction="Horizontal" default="0.556" variable="protein-intercept" units="kg/ha"></slider>
+    <slider x="835" step="0.00001" y="935" max="5" width="250" display="protein-mean-yield-beta" height="50" min="-5" direction="Horizontal" default="0.00583" variable="protein-mean-yield-beta" units="kg/ha per °C"></slider>
+    <slider x="65" step="0.00001" y="935" max="5" width="250" display="grains-intercept" height="50" min="-5" direction="Horizontal" default="-2.785" variable="grains-intercept" units="kg/ha"></slider>
+    <slider x="320" step="0.00001" y="935" max="5" width="250" display="grains-mean-yield-beta" height="50" min="-5" direction="Horizontal" default="0.00148" variable="grains-mean-yield-beta" units="kg/ha per °C"></slider>
+    <plot x="65" autoPlotX="true" yMax="0.0" autoPlotY="true" yAxis="Mean" y="730" xMin="0.0" height="200" legend="false" xMax="0.0" yMin="0.0" width="505" xAxis="Months" display="Grains (Dietary Intake)">
+      <setup>set-plot-y-range 0 1</setup>
+      <update>set-plot-x-range 0 plot-x-max-range</update>
+      <pen interval="1.0" mode="0" display="Grains" color="-955883" legend="true">
+        <setup></setup>
+        <update>let pen-color orange
+
+if (
+  (flip-data-series? = true) and
+  (data-series != "Future climate data") and
+  ([data-series] ls:of foodclim-ls-model = "Future climate data")
+  )[
+  set-plot-pen-color pen-color + 3
+]
+
+plot mean [grains-intake] of patches with [not is-missing? grains-intake]</update>
+      </pen>
+      <pen interval="1.0" mode="0" display="(Year indicator)" color="-16777216" legend="false">
+        <setup></setup>
+        <update>ifelse (
+  (start-month = month) or
+  ((index = 1) and (flip-index = 0))
+) [
+  set-plot-pen-color black
+] [
+  set-plot-pen-color white
+]
+
+plot 1</update>
+      </pen>
+    </plot>
+    <plot x="1095" autoPlotX="true" yMax="0.0" autoPlotY="true" yAxis="Mean" y="730" xMin="0.0" height="200" legend="false" xMax="0.0" yMin="0.0" width="505" xAxis="Months" display="Dairy (Dietary Intake)">
+      <setup>set-plot-y-range 0 1</setup>
+      <update>set-plot-x-range 0 plot-x-max-range</update>
+      <pen interval="1.0" mode="0" display="Dairy" color="-13345367" legend="true">
+        <setup></setup>
+        <update>let pen-color blue
+
+if (
+  (flip-data-series? = true) and
+  (data-series != "Future climate data") and
+  ([data-series] ls:of foodclim-ls-model = "Future climate data")
+  )[
+  set-plot-pen-color pen-color + 3
+]
+
+plot mean [dairy-intake] of patches with [not is-missing? dairy-intake]</update>
+      </pen>
+      <pen interval="1.0" mode="0" display="(Year indicator)" color="-16777216" legend="false">
+        <setup></setup>
+        <update>ifelse (
+  (start-month = month) or
+  ((index = 1) and (flip-index = 0))
+) [
+  set-plot-pen-color black
+] [
+  set-plot-pen-color white
+]
+
+plot 1</update>
+      </pen>
+    </plot>
+    <slider x="580" step="0.00001" y="990" max="5" width="250" display="protein-lat-beta" height="50" min="-5" direction="Horizontal" default="0.0545" variable="protein-lat-beta" units="kg/ha per deg."></slider>
+    <slider x="580" step="0.1" y="1045" max="1" width="250" display="protein-random-threshold" height="50" min="0" direction="Horizontal" default="0.3" variable="protein-random-threshold"></slider>
+    <slider x="835" step="0.00001" y="990" max="5" width="250" display="protein-lon-beta" height="50" min="-5" direction="Horizontal" default="0.48267" variable="protein-lon-beta" units="kg/ha per deg."></slider>
+    <slider x="65" step="0.00001" y="990" max="5" width="250" display="grains-lat-beta" height="50" min="-5" direction="Horizontal" default="0.0492" variable="grains-lat-beta" units="kg/ha per deg."></slider>
+    <slider x="65" step="0.1" y="1045" max="1" width="250" display="grains-random-threshold" height="50" min="0" direction="Horizontal" default="0.2" variable="grains-random-threshold"></slider>
+    <slider x="320" step="0.00001" y="990" max="5" width="250" display="grains-lon-beta" height="50" min="-5" direction="Horizontal" default="1.47485" variable="grains-lon-beta" units="kg/ha per deg."></slider>
+    <slider x="1095" step="0.1" y="1045" max="1" width="250" display="dairy-random-threshold" height="50" min="0" direction="Horizontal" default="0.2" variable="dairy-random-threshold"></slider>
+    <slider x="1095" step="0.00001" y="990" max="5" width="250" display="dairy-lat-beta" height="50" min="-5" direction="Horizontal" default="0.3684" variable="dairy-lat-beta" units="kg/ha per deg."></slider>
+    <slider x="1350" step="0.00001" y="990" max="5" width="250" display="dairy-lon-beta" height="50" min="-5" direction="Horizontal" default="0.96571" variable="dairy-lon-beta" units="kg/ha per deg."></slider>
+    <plot x="65" autoPlotX="true" yMax="0.0" autoPlotY="true" yAxis="Mean" y="1110" xMin="0.0" height="200" legend="false" xMax="0.0" yMin="0.0" width="505" xAxis="Months" display="Non-leafy vegetables (Dietary Intake)">
+      <setup>set-plot-y-range 0 1</setup>
+      <update>set-plot-x-range 0 plot-x-max-range</update>
+      <pen interval="1.0" mode="0" display="Non-leafy veg." color="-10899396" legend="true">
+        <setup></setup>
+        <update>let pen-color lime
+
+if (
+  (flip-data-series? = true) and
+  (data-series != "Future climate data") and
+  ([data-series] ls:of foodclim-ls-model = "Future climate data")
+  )[
+  set-plot-pen-color pen-color + 3
+]
+
+plot mean [non-leafy-veg-intake] of patches with [not is-missing? non-leafy-veg-intake]</update>
+      </pen>
+      <pen interval="1.0" mode="0" display="(Year indicator)" color="-16777216" legend="false">
+        <setup></setup>
+        <update>ifelse (
+  (start-month = month) or
+  ((index = 1) and (flip-index = 0))
+) [
+  set-plot-pen-color black
+] [
+  set-plot-pen-color white
+]
+
+plot 1</update>
+      </pen>
+    </plot>
+    <slider x="320" step="0.00001" y="1315" max="1" width="250" display="leafy-veg-mean-yield-beta" height="50" min="-1" direction="Horizontal" default="0.45247" variable="leafy-veg-mean-yield-beta" units="kg/ha per °C"></slider>
+    <slider x="65" step="0.00001" y="1315" max="5" width="250" display="leafy-veg-intercept" height="50" min="-5" direction="Horizontal" default="1.789" variable="leafy-veg-intercept" units="kg/ha"></slider>
+    <plot x="580" autoPlotX="true" yMax="0.0" autoPlotY="true" yAxis="Mean" y="1110" xMin="0.0" height="200" legend="false" xMax="0.0" yMin="0.0" width="505" xAxis="Months" display="Leafy Veg. (Dietary Intake)">
+      <setup>set-plot-y-range 0 1</setup>
+      <update>set-plot-x-range 0 plot-x-max-range</update>
+      <pen interval="1.0" mode="0" display="Leafy veg," color="-14835848" legend="true">
+        <setup></setup>
+        <update>let pen-color turquoise
+
+if (
+  (flip-data-series? = true) and
+  (data-series != "Future climate data") and
+  ([data-series] ls:of foodclim-ls-model = "Future climate data")
+  )[
+  set-plot-pen-color pen-color + 3
+]
+
+plot mean [leafy-veg-intake] of patches with [not is-missing? leafy-veg-intake]</update>
+      </pen>
+      <pen interval="1.0" mode="0" display="(Year indicator)" color="-16777216" legend="false">
+        <setup></setup>
+        <update>ifelse (
+  (start-month = month) or
+  ((index = 1) and (flip-index = 0))
+) [
+  set-plot-pen-color black
+] [
+  set-plot-pen-color white
+]
+
+plot 1</update>
+      </pen>
+    </plot>
+    <slider x="580" step="0.00001" y="1315" max="5" width="250" display="non-leafy-veg-intercept" height="50" min="-5" direction="Horizontal" default="1.35" variable="non-leafy-veg-intercept" units="kg/ha"></slider>
+    <slider x="835" step="0.00001" y="1315" max="5" width="250" display="non-leafy-veg-mean-yield-beta" height="50" min="-5" direction="Horizontal" default="0.75921" variable="non-leafy-veg-mean-yield-beta" units="kg/ha per °C"></slider>
+    <plot x="1095" autoPlotX="true" yMax="0.0" autoPlotY="true" yAxis="Mean" y="1110" xMin="0.0" height="200" legend="false" xMax="0.0" yMin="0.0" width="505" xAxis="Months" display="Fruits (Dietary Intake)">
+      <setup>set-plot-y-range 0 1</setup>
+      <update>set-plot-x-range 0 plot-x-max-range</update>
+      <pen interval="1.0" mode="0" display="Fruits" color="-2674135" legend="true">
+        <setup></setup>
+        <update>let pen-color red
+
+if (
+  (flip-data-series? = true) and
+  (data-series != "Future climate data") and
+  ([data-series] ls:of foodclim-ls-model = "Future climate data")
+  )[
+  set-plot-pen-color pen-color + 3
+]
+
+plot mean [fruits-intake] of patches with [not is-missing? fruits-intake]</update>
+      </pen>
+      <pen interval="1.0" mode="0" display="(Year indicator)" color="-16777216" legend="false">
+        <setup></setup>
+        <update>ifelse (
+  (start-month = month) or
+  ((index = 1) and (flip-index = 0))
+) [
+  set-plot-pen-color black
+] [
+  set-plot-pen-color white
+]
+
+plot 1</update>
+      </pen>
+    </plot>
+    <slider x="1095" step="0.00001" y="1315" max="5" width="250" display="fruits-intercept" height="50" min="-5" direction="Horizontal" default="0.0024" variable="fruits-intercept" units="kg/ha"></slider>
+    <slider x="1350" step="0.00001" y="1315" max="5" width="250" display="fruits-mean-yield-beta" height="50" min="-5" direction="Horizontal" default="0.09752" variable="fruits-mean-yield-beta" units="kg/ha per °C"></slider>
+    <slider x="580" step="0.00001" y="1370" max="5" width="250" display="non-leafy-veg-lat-beta" height="50" min="-5" direction="Horizontal" default="0.7531" variable="non-leafy-veg-lat-beta" units="kg/ha per deg."></slider>
+    <slider x="1095" step="0.1" y="1425" max="1" width="250" display="fruits-random-threshold" height="50" min="0" direction="Horizontal" default="0.2" variable="fruits-random-threshold"></slider>
+    <slider x="1350" step="0.00001" y="1370" max="5" width="250" display="fruits-lon-beta" height="50" min="-5" direction="Horizontal" default="1.7513" variable="fruits-lon-beta" units="kg/ha per deg."></slider>
+    <slider x="1095" step="0.00001" y="1370" max="5" width="250" display="fruits-lat-beta" height="50" min="-5" direction="Horizontal" default="2.548" variable="fruits-lat-beta" units="kg/ha per deg."></slider>
+    <slider x="580" step="0.1" y="1425" max="1" width="250" display="non-leafy-veg-random-threshold" height="50" min="0" direction="Horizontal" default="0.2" variable="non-leafy-veg-random-threshold"></slider>
+    <slider x="835" step="0.00001" y="1370" max="5" display="non-leafy-veg-lon-beta" height="50" min="-5" direction="Horizontal" default="0.89521" variable="non-leafy-veg-lon-beta" units="kg/ha per deg." width="250" sizeVersion="0"></slider>
+    <slider x="65" step="0.00001" y="1370" max="5" width="250" display="leafy-veg-lat-beta" height="50" min="-5" direction="Horizontal" default="1.4562" variable="leafy-veg-lat-beta" units="kg/ha per deg."></slider>
+    <slider x="320" step="0.00001" y="1370" max="5" width="250" display="leafy-veg-lon-beta" height="50" min="-5" direction="Horizontal" default="0.5545" variable="leafy-veg-lon-beta" units="kg/ha per deg."></slider>
+    <slider x="65" step="0.1" y="1425" max="1" width="250" display="leafy-veg-random-threshold" height="50" min="0" direction="Horizontal" default="0.3" variable="leafy-veg-random-threshold"></slider>
+    <note x="700" y="695" backgroundDark="0" fontSize="14" width="300" markdown="false" height="20" textColorDark="-1" textColorLight="-16777216" backgroundLight="0">Parameters for Dietary Intake Response</note>
+    <plot x="1165" autoPlotX="true" yMax="0.0" autoPlotY="true" yAxis="yield / base." y="340" xMin="0.0" height="260" legend="true" xMax="0.0" yMin="0.0" width="505" xAxis="Months" display="Children nutrition">
+      <setup></setup>
+      <update>set-plot-x-range 0 plot-x-max-range</update>
+      <pen interval="1.0" mode="0" display="Healthy Nutrition" color="-13345367" legend="true">
+        <setup></setup>
+        <update>plot count patches with [healthy? = true]</update>
+      </pen>
+      <pen interval="1.0" mode="0" display="Undernutrition" color="-2674135" legend="true">
+        <setup></setup>
+        <update>plot count patches with [healthy? = false]</update>
+      </pen>
+      <pen interval="1.0" mode="0" display="(Year indicator)" color="-16777216" legend="false">
+        <setup></setup>
+        <update>ifelse (
+  (start-month = month) or
+  ((index = 1) and (flip-index = 0))
+) [
+  set-plot-pen-color black
+] [
+  set-plot-pen-color white
+]
+
+plot 0</update>
+      </pen>
+    </plot>
+  </widgets>
+  <info><![CDATA[# FOODCLIM: FOOD YIELD RESPONSES TO CLIMATE CHANGE IN NETLOGO
+
+You are currently using the developer version of `FoodClim`.
+
+## HOW TO USE IT
+
+Refer to the [`LogoClim`](https://github.com/sustentarea/logoclim) installation guide for detailed steps on installing the required dependencies.
+
+Once `LogoClim` is installed, you can run the `FoodClim` model by specifying the path to your `LogoClim` installation in the `FoodClim` interface. This allows `FoodClim` to access climate data provided by `LogoClim` during simulations.
+
+### BEHAVIOR NOTES
+
+#### ORDER OF EVENTS
+
+Due to the use of empirical data, the world and charts may experience some delay. However, it's important to note the order of events: the world will always update **before** the charts.
+
+#### CHARTS
+
+The starting month of the one-year baseline cycle is indicated by a black line on the bottom of the charts. The relative yield will always take into account the starting year and starting month.
+
+If `flip-series?` is on, the color of the chart series will slightly fade at the point where the flip occurs to the `Future climate data` series.
+
+#### `raise-lower-*` SLIDERS
+
+These sliders adjust the global value of a variable by proportionally scaling each patch's value. Specifically, a proportionality constant (alpha) is applied to each patch so that the overall mean changes by the desired amount:
+
+alpha = ΔTmean / Tmean
+
+Where:
+
+- alpha = Proportionality constant
+- ΔTmean = Desired change in the global mean
+- Tmean = Current mean temperature across all patches
+
+This ensures that patches with higher initial values receive proportionally larger adjustments, while the system's overall mean changes by exactly the specified amount.
+
+## HOW TO CITE
+
+If you use this model in your research, please cite it to acknowledge the effort invested in its development and maintenance. Your citation helps support the ongoing improvement of the model.
+
+To cite `FoodClim` in publications please use the following format:
+
+Vartanian, D., Garcia, L., & Carvalho, A. M. (2025). *FoodClim: Food yield responses to climate change in NetLogo* [Computer software]. <https://doi.org/10.17605/OSF.IO/ZGVMP>
+
+A BibTeX entry for LaTeX users is:
+
+```latex
+@Misc{vartanian2025,
+  title = {FoodClim: Food yield responses to climate change in NetLogo},
+  author = {{Daniel Vartanian} and {Leandro Garcia} and {Aline Martins de Carvalho}},
+  year = {2025},
+  doi = {https://doi.org/10.17605/OSF.IO/ZGVMP},
+  note = {NetLogo model}
+}
+```
+
+## HOW TO CONTRIBUTE
+
+![Contributor Covenant 2.1 badge](contributor-covenant-2-1-badge)
+
+Contributions are welcome! Whether it's reporting bugs, suggesting features, or improving documentation, your input is valuable.
+
+![GitHub Sponsor badge](github-sponsor-badge)
+
+You can also support the development of `FoodClim` by becoming a sponsor. Click [here](https://github.com/sponsors/danielvartan) to make a donation. Please mention `FoodClim` in your donation message.
+
+## IMPORTANT LINKS
+
+- OSF repository: https://doi.org/10.17605/OSF.IO/ZGVMP
+- Code repository: https://github.com/sustentarea/foodclim
+- Latest release: https://github.com/sustentarea/foodclim/releases/latest
+- Support development: https://github.com/sponsors/danielvartan
+
+## LICENSE
+
+![GPLv3 license badge](gplv3-license-badge)
+
+```text
+Copyright (C) 2025 Daniel Vartanian
+
+FoodClim is free software: you can redistribute it and/or modify it under the
+terms of the GNU General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE. See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <https://www.gnu.org/licenses/>.
+```
+
+## ACKNOWLEDGMENTS
+
+We gratefully acknowledge [Stephen E. Fick](https://orcid.org/0000-0002-3548-6966), [Robert J. Hijmans](https://orcid.org/0000-0001-5872-2872), and the entire [WorldClim](https://worldclim.org/) team for their outstanding work in creating and maintaining the WorldClim datasets, which form the foundation of this project.
+
+We thank the [Climatic Research Unit](https://www.uea.ac.uk/groups-and-centres/climatic-research-unit) at the [University of East Anglia](https://www.uea.ac.uk/) and the United Kingdom's [Met Office](https://www.metoffice.gov.uk/) for developing and providing access to the [CRU-TS-4.09](https://crudata.uea.ac.uk/cru/data/hrg/cru_ts_4.09/) dataset, a vital source of historical climate data.
+
+We also acknowledge the World Climate Research Programme ([WCRP](https://www.wcrp-climate.org/)), its Working Group on Coupled Modelling, and the Coupled Model Intercomparison Project Phase 6 ([CMIP6](https://pcmdi.llnl.gov/CMIP6/)) for coordinating and advancing global climate model development.
+
+We are grateful to the climate modeling groups for producing and sharing their model outputs, the Earth System Grid Federation ([ESGF](https://esgf.llnl.gov/)) for archiving and providing access to the data, and the many funding agencies that support CMIP6 and ESGF.
+
+![Sustentarea logo](sustentarea-logo)
+
+`FoodClim` was developed with support from the [Sustentarea](https://github.com/sustentarea/) Research and Extension Center at the University of São Paulo ([USP](https://www.usp.br/)).
+
+![CNPq logo](cnpq-logo)
+
+This work was supported by the Department of Science and Technology of the Secretariat of Science, Technology, and Innovation and of the Health Economic-Industrial Complex ([SECTICS](https://www.gov.br/saude/pt-br/composicao/sectics)) of the [Ministry of Health](https://www.gov.br/saude/en) of Brazil, and the National Council for Scientific and Technological Development ([CNPq](https://www.gov.br/cnpq/)) (grant no. 444588/2023-0).
+
+## REFERENCES
+
+Firpo, M. Â. F., Guimarães, B. dos S., Dantas, L. G., Silva, M. G. B. da, Alves, L. M., Chadwick, R., Llopart, M. P., & Oliveira, G. S. de. (2022). Assessment of CMIP6 models' performance in simulating present-day climate in Brazil. *Frontiers in Climate*, *4*. <https://doi.org/10.3389/fclim.2022.948499>
+
+Vartanian, D., Garcia, L. M. T., & Carvalho, A. M. (2025). *LogoClim: WorldClim in NetLogo* [Computer software]. <https://doi.org/10.17605/OSF.IO/EAPZU>]]></info>
+  <turtleShapes>
+    <shape name="default" rotatable="true" editableColorIndex="0">
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="150" y="5"></point>
+        <point x="40" y="250"></point>
+        <point x="150" y="205"></point>
+        <point x="260" y="250"></point>
+      </polygon>
+    </shape>
+    <shape name="airplane" rotatable="true" editableColorIndex="0">
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="150" y="0"></point>
+        <point x="135" y="15"></point>
+        <point x="120" y="60"></point>
+        <point x="120" y="105"></point>
+        <point x="15" y="165"></point>
+        <point x="15" y="195"></point>
+        <point x="120" y="180"></point>
+        <point x="135" y="240"></point>
+        <point x="105" y="270"></point>
+        <point x="120" y="285"></point>
+        <point x="150" y="270"></point>
+        <point x="180" y="285"></point>
+        <point x="210" y="270"></point>
+        <point x="165" y="240"></point>
+        <point x="180" y="180"></point>
+        <point x="285" y="195"></point>
+        <point x="285" y="165"></point>
+        <point x="180" y="105"></point>
+        <point x="180" y="60"></point>
+        <point x="165" y="15"></point>
+      </polygon>
+    </shape>
+    <shape name="arrow" rotatable="true" editableColorIndex="0">
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="150" y="0"></point>
+        <point x="0" y="150"></point>
+        <point x="105" y="150"></point>
+        <point x="105" y="293"></point>
+        <point x="195" y="293"></point>
+        <point x="195" y="150"></point>
+        <point x="300" y="150"></point>
+      </polygon>
+    </shape>
+    <shape name="box" rotatable="false" editableColorIndex="0">
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="150" y="285"></point>
+        <point x="285" y="225"></point>
+        <point x="285" y="75"></point>
+        <point x="150" y="135"></point>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="150" y="135"></point>
+        <point x="15" y="75"></point>
+        <point x="150" y="15"></point>
+        <point x="285" y="75"></point>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="15" y="75"></point>
+        <point x="15" y="225"></point>
+        <point x="150" y="285"></point>
+        <point x="150" y="135"></point>
+      </polygon>
+      <line endX="150" startY="285" marked="false" color="255" endY="135" startX="150"></line>
+      <line endX="15" startY="135" marked="false" color="255" endY="75" startX="150"></line>
+      <line endX="285" startY="135" marked="false" color="255" endY="75" startX="150"></line>
+    </shape>
+    <shape name="bug" rotatable="true" editableColorIndex="0">
+      <circle x="96" y="182" marked="true" color="-1920102913" diameter="108" filled="true"></circle>
+      <circle x="110" y="127" marked="true" color="-1920102913" diameter="80" filled="true"></circle>
+      <circle x="110" y="75" marked="true" color="-1920102913" diameter="80" filled="true"></circle>
+      <line endX="80" startY="100" marked="true" color="-1920102913" endY="30" startX="150"></line>
+      <line endX="220" startY="100" marked="true" color="-1920102913" endY="30" startX="150"></line>
+    </shape>
+    <shape name="butterfly" rotatable="true" editableColorIndex="0">
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="150" y="165"></point>
+        <point x="209" y="199"></point>
+        <point x="225" y="225"></point>
+        <point x="225" y="255"></point>
+        <point x="195" y="270"></point>
+        <point x="165" y="255"></point>
+        <point x="150" y="240"></point>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="150" y="165"></point>
+        <point x="89" y="198"></point>
+        <point x="75" y="225"></point>
+        <point x="75" y="255"></point>
+        <point x="105" y="270"></point>
+        <point x="135" y="255"></point>
+        <point x="150" y="240"></point>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="139" y="148"></point>
+        <point x="100" y="105"></point>
+        <point x="55" y="90"></point>
+        <point x="25" y="90"></point>
+        <point x="10" y="105"></point>
+        <point x="10" y="135"></point>
+        <point x="25" y="180"></point>
+        <point x="40" y="195"></point>
+        <point x="85" y="194"></point>
+        <point x="139" y="163"></point>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="162" y="150"></point>
+        <point x="200" y="105"></point>
+        <point x="245" y="90"></point>
+        <point x="275" y="90"></point>
+        <point x="290" y="105"></point>
+        <point x="290" y="135"></point>
+        <point x="275" y="180"></point>
+        <point x="260" y="195"></point>
+        <point x="215" y="195"></point>
+        <point x="162" y="165"></point>
+      </polygon>
+      <polygon color="255" filled="true" marked="false">
+        <point x="150" y="255"></point>
+        <point x="135" y="225"></point>
+        <point x="120" y="150"></point>
+        <point x="135" y="120"></point>
+        <point x="150" y="105"></point>
+        <point x="165" y="120"></point>
+        <point x="180" y="150"></point>
+        <point x="165" y="225"></point>
+      </polygon>
+      <circle x="135" y="90" marked="false" color="255" diameter="30" filled="true"></circle>
+      <line endX="195" startY="105" marked="false" color="255" endY="60" startX="150"></line>
+      <line endX="105" startY="105" marked="false" color="255" endY="60" startX="150"></line>
+    </shape>
+    <shape name="car" rotatable="false" editableColorIndex="0">
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="300" y="180"></point>
+        <point x="279" y="164"></point>
+        <point x="261" y="144"></point>
+        <point x="240" y="135"></point>
+        <point x="226" y="132"></point>
+        <point x="213" y="106"></point>
+        <point x="203" y="84"></point>
+        <point x="185" y="63"></point>
+        <point x="159" y="50"></point>
+        <point x="135" y="50"></point>
+        <point x="75" y="60"></point>
+        <point x="0" y="150"></point>
+        <point x="0" y="165"></point>
+        <point x="0" y="225"></point>
+        <point x="300" y="225"></point>
+        <point x="300" y="180"></point>
+      </polygon>
+      <circle x="180" y="180" marked="false" color="255" diameter="90" filled="true"></circle>
+      <circle x="30" y="180" marked="false" color="255" diameter="90" filled="true"></circle>
+      <polygon color="255" filled="true" marked="false">
+        <point x="162" y="80"></point>
+        <point x="132" y="78"></point>
+        <point x="134" y="135"></point>
+        <point x="209" y="135"></point>
+        <point x="194" y="105"></point>
+        <point x="189" y="96"></point>
+        <point x="180" y="89"></point>
+      </polygon>
+      <circle x="47" y="195" marked="true" color="-1920102913" diameter="58" filled="true"></circle>
+      <circle x="195" y="195" marked="true" color="-1920102913" diameter="58" filled="true"></circle>
+    </shape>
+    <shape name="circle" rotatable="false" editableColorIndex="0">
+      <circle x="0" y="0" marked="true" color="-1920102913" diameter="300" filled="true"></circle>
+    </shape>
+    <shape name="circle 2" rotatable="false" editableColorIndex="0">
+      <circle x="0" y="0" marked="true" color="-1920102913" diameter="300" filled="true"></circle>
+      <circle x="30" y="30" marked="false" color="255" diameter="240" filled="true"></circle>
+    </shape>
+    <shape name="cow" rotatable="false" editableColorIndex="0">
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="200" y="193"></point>
+        <point x="197" y="249"></point>
+        <point x="179" y="249"></point>
+        <point x="177" y="196"></point>
+        <point x="166" y="187"></point>
+        <point x="140" y="189"></point>
+        <point x="93" y="191"></point>
+        <point x="78" y="179"></point>
+        <point x="72" y="211"></point>
+        <point x="49" y="209"></point>
+        <point x="48" y="181"></point>
+        <point x="37" y="149"></point>
+        <point x="25" y="120"></point>
+        <point x="25" y="89"></point>
+        <point x="45" y="72"></point>
+        <point x="103" y="84"></point>
+        <point x="179" y="75"></point>
+        <point x="198" y="76"></point>
+        <point x="252" y="64"></point>
+        <point x="272" y="81"></point>
+        <point x="293" y="103"></point>
+        <point x="285" y="121"></point>
+        <point x="255" y="121"></point>
+        <point x="242" y="118"></point>
+        <point x="224" y="167"></point>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="73" y="210"></point>
+        <point x="86" y="251"></point>
+        <point x="62" y="249"></point>
+        <point x="48" y="208"></point>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="25" y="114"></point>
+        <point x="16" y="195"></point>
+        <point x="9" y="204"></point>
+        <point x="23" y="213"></point>
+        <point x="25" y="200"></point>
+        <point x="39" y="123"></point>
+      </polygon>
+    </shape>
+    <shape name="cylinder" rotatable="false" editableColorIndex="0">
+      <circle x="0" y="0" marked="true" color="-1920102913" diameter="300" filled="true"></circle>
+    </shape>
+    <shape name="dot" rotatable="false" editableColorIndex="0">
+      <circle x="90" y="90" marked="true" color="-1920102913" diameter="120" filled="true"></circle>
+    </shape>
+    <shape name="face happy" rotatable="false" editableColorIndex="0">
+      <circle x="8" y="8" marked="true" color="-1920102913" diameter="285" filled="true"></circle>
+      <circle x="60" y="75" marked="false" color="255" diameter="60" filled="true"></circle>
+      <circle x="180" y="75" marked="false" color="255" diameter="60" filled="true"></circle>
+      <polygon color="255" filled="true" marked="false">
+        <point x="150" y="255"></point>
+        <point x="90" y="239"></point>
+        <point x="62" y="213"></point>
+        <point x="47" y="191"></point>
+        <point x="67" y="179"></point>
+        <point x="90" y="203"></point>
+        <point x="109" y="218"></point>
+        <point x="150" y="225"></point>
+        <point x="192" y="218"></point>
+        <point x="210" y="203"></point>
+        <point x="227" y="181"></point>
+        <point x="251" y="194"></point>
+        <point x="236" y="217"></point>
+        <point x="212" y="240"></point>
+      </polygon>
+    </shape>
+    <shape name="face neutral" rotatable="false" editableColorIndex="0">
+      <circle x="8" y="7" marked="true" color="-1920102913" diameter="285" filled="true"></circle>
+      <circle x="60" y="75" marked="false" color="255" diameter="60" filled="true"></circle>
+      <circle x="180" y="75" marked="false" color="255" diameter="60" filled="true"></circle>
+      <rectangle endX="240" startY="195" marked="false" color="255" endY="225" startX="60" filled="true"></rectangle>
+    </shape>
+    <shape name="face sad" rotatable="false" editableColorIndex="0">
+      <circle x="8" y="8" marked="true" color="-1920102913" diameter="285" filled="true"></circle>
+      <circle x="60" y="75" marked="false" color="255" diameter="60" filled="true"></circle>
+      <circle x="180" y="75" marked="false" color="255" diameter="60" filled="true"></circle>
+      <polygon color="255" filled="true" marked="false">
+        <point x="150" y="168"></point>
+        <point x="90" y="184"></point>
+        <point x="62" y="210"></point>
+        <point x="47" y="232"></point>
+        <point x="67" y="244"></point>
+        <point x="90" y="220"></point>
+        <point x="109" y="205"></point>
+        <point x="150" y="198"></point>
+        <point x="192" y="205"></point>
+        <point x="210" y="220"></point>
+        <point x="227" y="242"></point>
+        <point x="251" y="229"></point>
+        <point x="236" y="206"></point>
+        <point x="212" y="183"></point>
+      </polygon>
+    </shape>
+    <shape name="fish" rotatable="false" editableColorIndex="0">
+      <polygon color="-1" filled="true" marked="false">
+        <point x="44" y="131"></point>
+        <point x="21" y="87"></point>
+        <point x="15" y="86"></point>
+        <point x="0" y="120"></point>
+        <point x="15" y="150"></point>
+        <point x="0" y="180"></point>
+        <point x="13" y="214"></point>
+        <point x="20" y="212"></point>
+        <point x="45" y="166"></point>
+      </polygon>
+      <polygon color="-1" filled="true" marked="false">
+        <point x="135" y="195"></point>
+        <point x="119" y="235"></point>
+        <point x="95" y="218"></point>
+        <point x="76" y="210"></point>
+        <point x="46" y="204"></point>
+        <point x="60" y="165"></point>
+      </polygon>
+      <polygon color="-1" filled="true" marked="false">
+        <point x="75" y="45"></point>
+        <point x="83" y="77"></point>
+        <point x="71" y="103"></point>
+        <point x="86" y="114"></point>
+        <point x="166" y="78"></point>
+        <point x="135" y="60"></point>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="30" y="136"></point>
+        <point x="151" y="77"></point>
+        <point x="226" y="81"></point>
+        <point x="280" y="119"></point>
+        <point x="292" y="146"></point>
+        <point x="292" y="160"></point>
+        <point x="287" y="170"></point>
+        <point x="270" y="195"></point>
+        <point x="195" y="210"></point>
+        <point x="151" y="212"></point>
+        <point x="30" y="166"></point>
+      </polygon>
+      <circle x="215" y="106" marked="false" color="255" diameter="30" filled="true"></circle>
+    </shape>
+    <shape name="flag" rotatable="false" editableColorIndex="0">
+      <rectangle endX="75" startY="15" marked="true" color="-1920102913" endY="300" startX="60" filled="true"></rectangle>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="90" y="150"></point>
+        <point x="270" y="90"></point>
+        <point x="90" y="30"></point>
+      </polygon>
+      <line endX="90" startY="135" marked="true" color="-1920102913" endY="135" startX="75"></line>
+      <line endX="90" startY="45" marked="true" color="-1920102913" endY="45" startX="75"></line>
+    </shape>
+    <shape name="flower" rotatable="false" editableColorIndex="0">
+      <polygon color="1504722175" filled="true" marked="false">
+        <point x="135" y="120"></point>
+        <point x="165" y="165"></point>
+        <point x="180" y="210"></point>
+        <point x="180" y="240"></point>
+        <point x="150" y="300"></point>
+        <point x="165" y="300"></point>
+        <point x="195" y="240"></point>
+        <point x="195" y="195"></point>
+        <point x="165" y="135"></point>
+      </polygon>
+      <circle x="85" y="132" marked="true" color="-1920102913" diameter="38" filled="true"></circle>
+      <circle x="130" y="147" marked="true" color="-1920102913" diameter="38" filled="true"></circle>
+      <circle x="192" y="85" marked="true" color="-1920102913" diameter="38" filled="true"></circle>
+      <circle x="85" y="40" marked="true" color="-1920102913" diameter="38" filled="true"></circle>
+      <circle x="177" y="40" marked="true" color="-1920102913" diameter="38" filled="true"></circle>
+      <circle x="177" y="132" marked="true" color="-1920102913" diameter="38" filled="true"></circle>
+      <circle x="70" y="85" marked="true" color="-1920102913" diameter="38" filled="true"></circle>
+      <circle x="130" y="25" marked="true" color="-1920102913" diameter="38" filled="true"></circle>
+      <circle x="96" y="51" marked="true" color="-1920102913" diameter="108" filled="true"></circle>
+      <circle x="113" y="68" marked="false" color="255" diameter="74" filled="true"></circle>
+      <polygon color="1504722175" filled="true" marked="false">
+        <point x="189" y="233"></point>
+        <point x="219" y="188"></point>
+        <point x="249" y="173"></point>
+        <point x="279" y="188"></point>
+        <point x="234" y="218"></point>
+      </polygon>
+      <polygon color="1504722175" filled="true" marked="false">
+        <point x="180" y="255"></point>
+        <point x="150" y="210"></point>
+        <point x="105" y="210"></point>
+        <point x="75" y="240"></point>
+        <point x="135" y="240"></point>
+      </polygon>
+    </shape>
+    <shape name="house" rotatable="false" editableColorIndex="0">
+      <rectangle endX="255" startY="120" marked="true" color="-1920102913" endY="285" startX="45" filled="true"></rectangle>
+      <rectangle endX="180" startY="210" marked="false" color="255" endY="285" startX="120" filled="true"></rectangle>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="15" y="120"></point>
+        <point x="150" y="15"></point>
+        <point x="285" y="120"></point>
+      </polygon>
+      <line endX="270" startY="120" marked="false" color="255" endY="120" startX="30"></line>
+    </shape>
+    <shape name="leaf" rotatable="false" editableColorIndex="0">
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="150" y="210"></point>
+        <point x="135" y="195"></point>
+        <point x="120" y="210"></point>
+        <point x="60" y="210"></point>
+        <point x="30" y="195"></point>
+        <point x="60" y="180"></point>
+        <point x="60" y="165"></point>
+        <point x="15" y="135"></point>
+        <point x="30" y="120"></point>
+        <point x="15" y="105"></point>
+        <point x="40" y="104"></point>
+        <point x="45" y="90"></point>
+        <point x="60" y="90"></point>
+        <point x="90" y="105"></point>
+        <point x="105" y="120"></point>
+        <point x="120" y="120"></point>
+        <point x="105" y="60"></point>
+        <point x="120" y="60"></point>
+        <point x="135" y="30"></point>
+        <point x="150" y="15"></point>
+        <point x="165" y="30"></point>
+        <point x="180" y="60"></point>
+        <point x="195" y="60"></point>
+        <point x="180" y="120"></point>
+        <point x="195" y="120"></point>
+        <point x="210" y="105"></point>
+        <point x="240" y="90"></point>
+        <point x="255" y="90"></point>
+        <point x="263" y="104"></point>
+        <point x="285" y="105"></point>
+        <point x="270" y="120"></point>
+        <point x="285" y="135"></point>
+        <point x="240" y="165"></point>
+        <point x="240" y="180"></point>
+        <point x="270" y="195"></point>
+        <point x="240" y="210"></point>
+        <point x="180" y="210"></point>
+        <point x="165" y="195"></point>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="135" y="195"></point>
+        <point x="135" y="240"></point>
+        <point x="120" y="255"></point>
+        <point x="105" y="255"></point>
+        <point x="105" y="285"></point>
+        <point x="135" y="285"></point>
+        <point x="165" y="240"></point>
+        <point x="165" y="195"></point>
+      </polygon>
+    </shape>
+    <shape name="line" rotatable="true" editableColorIndex="0">
+      <line endX="150" startY="0" marked="true" color="-1920102913" endY="300" startX="150"></line>
+    </shape>
+    <shape name="line half" rotatable="true" editableColorIndex="0">
+      <line endX="150" startY="0" marked="true" color="-1920102913" endY="150" startX="150"></line>
+    </shape>
+    <shape name="pentagon" rotatable="false" editableColorIndex="0">
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="150" y="15"></point>
+        <point x="15" y="120"></point>
+        <point x="60" y="285"></point>
+        <point x="240" y="285"></point>
+        <point x="285" y="120"></point>
+      </polygon>
+    </shape>
+    <shape name="person" rotatable="false" editableColorIndex="0">
+      <circle x="110" y="5" marked="true" color="-1920102913" diameter="80" filled="true"></circle>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="105" y="90"></point>
+        <point x="120" y="195"></point>
+        <point x="90" y="285"></point>
+        <point x="105" y="300"></point>
+        <point x="135" y="300"></point>
+        <point x="150" y="225"></point>
+        <point x="165" y="300"></point>
+        <point x="195" y="300"></point>
+        <point x="210" y="285"></point>
+        <point x="180" y="195"></point>
+        <point x="195" y="90"></point>
+      </polygon>
+      <rectangle endX="172" startY="79" marked="true" color="-1920102913" endY="94" startX="127" filled="true"></rectangle>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="195" y="90"></point>
+        <point x="240" y="150"></point>
+        <point x="225" y="180"></point>
+        <point x="165" y="105"></point>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="105" y="90"></point>
+        <point x="60" y="150"></point>
+        <point x="75" y="180"></point>
+        <point x="135" y="105"></point>
+      </polygon>
+    </shape>
+    <shape name="plant" rotatable="false" editableColorIndex="0">
+      <rectangle endX="165" startY="90" marked="true" color="-1920102913" endY="300" startX="135" filled="true"></rectangle>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="135" y="255"></point>
+        <point x="90" y="210"></point>
+        <point x="45" y="195"></point>
+        <point x="75" y="255"></point>
+        <point x="135" y="285"></point>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="165" y="255"></point>
+        <point x="210" y="210"></point>
+        <point x="255" y="195"></point>
+        <point x="225" y="255"></point>
+        <point x="165" y="285"></point>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="135" y="180"></point>
+        <point x="90" y="135"></point>
+        <point x="45" y="120"></point>
+        <point x="75" y="180"></point>
+        <point x="135" y="210"></point>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="165" y="180"></point>
+        <point x="165" y="210"></point>
+        <point x="225" y="180"></point>
+        <point x="255" y="120"></point>
+        <point x="210" y="135"></point>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="135" y="105"></point>
+        <point x="90" y="60"></point>
+        <point x="45" y="45"></point>
+        <point x="75" y="105"></point>
+        <point x="135" y="135"></point>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="165" y="105"></point>
+        <point x="165" y="135"></point>
+        <point x="225" y="105"></point>
+        <point x="255" y="45"></point>
+        <point x="210" y="60"></point>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="135" y="90"></point>
+        <point x="120" y="45"></point>
+        <point x="150" y="15"></point>
+        <point x="180" y="45"></point>
+        <point x="165" y="90"></point>
+      </polygon>
+    </shape>
+    <shape name="sheep" rotatable="false" editableColorIndex="15">
+      <circle x="203" y="65" marked="true" color="-1" diameter="88" filled="true"></circle>
+      <circle x="70" y="65" marked="true" color="-1" diameter="162" filled="true"></circle>
+      <circle x="150" y="105" marked="true" color="-1" diameter="120" filled="true"></circle>
+      <polygon color="-1920102913" filled="true" marked="false">
+        <point x="218" y="120"></point>
+        <point x="240" y="165"></point>
+        <point x="255" y="165"></point>
+        <point x="278" y="120"></point>
+      </polygon>
+      <circle x="214" y="72" marked="false" color="-1920102913" diameter="67" filled="true"></circle>
+      <rectangle endX="179" startY="223" marked="true" color="-1" endY="298" startX="164" filled="true"></rectangle>
+      <polygon color="-1" filled="true" marked="true">
+        <point x="45" y="285"></point>
+        <point x="30" y="285"></point>
+        <point x="30" y="240"></point>
+        <point x="15" y="195"></point>
+        <point x="45" y="210"></point>
+      </polygon>
+      <circle x="3" y="83" marked="true" color="-1" diameter="150" filled="true"></circle>
+      <rectangle endX="80" startY="221" marked="true" color="-1" endY="296" startX="65" filled="true"></rectangle>
+      <polygon color="-1" filled="true" marked="true">
+        <point x="195" y="285"></point>
+        <point x="210" y="285"></point>
+        <point x="210" y="240"></point>
+        <point x="240" y="210"></point>
+        <point x="195" y="210"></point>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="false">
+        <point x="276" y="85"></point>
+        <point x="285" y="105"></point>
+        <point x="302" y="99"></point>
+        <point x="294" y="83"></point>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="false">
+        <point x="219" y="85"></point>
+        <point x="210" y="105"></point>
+        <point x="193" y="99"></point>
+        <point x="201" y="83"></point>
+      </polygon>
+    </shape>
+    <shape name="square" rotatable="false" editableColorIndex="0">
+      <rectangle endX="270" startY="30" marked="true" color="-1920102913" endY="270" startX="30" filled="true"></rectangle>
+    </shape>
+    <shape name="square 2" rotatable="false" editableColorIndex="0">
+      <rectangle endX="270" startY="30" marked="true" color="-1920102913" endY="270" startX="30" filled="true"></rectangle>
+      <rectangle endX="240" startY="60" marked="false" color="255" endY="240" startX="60" filled="true"></rectangle>
+    </shape>
+    <shape name="star" rotatable="false" editableColorIndex="0">
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="151" y="1"></point>
+        <point x="185" y="108"></point>
+        <point x="298" y="108"></point>
+        <point x="207" y="175"></point>
+        <point x="242" y="282"></point>
+        <point x="151" y="216"></point>
+        <point x="59" y="282"></point>
+        <point x="94" y="175"></point>
+        <point x="3" y="108"></point>
+        <point x="116" y="108"></point>
+      </polygon>
+    </shape>
+    <shape name="target" rotatable="false" editableColorIndex="0">
+      <circle x="0" y="0" marked="true" color="-1920102913" diameter="300" filled="true"></circle>
+      <circle x="30" y="30" marked="false" color="255" diameter="240" filled="true"></circle>
+      <circle x="60" y="60" marked="true" color="-1920102913" diameter="180" filled="true"></circle>
+      <circle x="90" y="90" marked="false" color="255" diameter="120" filled="true"></circle>
+      <circle x="120" y="120" marked="true" color="-1920102913" diameter="60" filled="true"></circle>
+    </shape>
+    <shape name="tree" rotatable="false" editableColorIndex="0">
+      <circle x="118" y="3" marked="true" color="-1920102913" diameter="94" filled="true"></circle>
+      <rectangle endX="180" startY="195" marked="false" color="-1653716737" endY="300" startX="120" filled="true"></rectangle>
+      <circle x="65" y="21" marked="true" color="-1920102913" diameter="108" filled="true"></circle>
+      <circle x="116" y="41" marked="true" color="-1920102913" diameter="127" filled="true"></circle>
+      <circle x="45" y="90" marked="true" color="-1920102913" diameter="120" filled="true"></circle>
+      <circle x="104" y="74" marked="true" color="-1920102913" diameter="152" filled="true"></circle>
+    </shape>
+    <shape name="triangle" rotatable="false" editableColorIndex="0">
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="150" y="30"></point>
+        <point x="15" y="255"></point>
+        <point x="285" y="255"></point>
+      </polygon>
+    </shape>
+    <shape name="triangle 2" rotatable="false" editableColorIndex="0">
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="150" y="30"></point>
+        <point x="15" y="255"></point>
+        <point x="285" y="255"></point>
+      </polygon>
+      <polygon color="255" filled="true" marked="false">
+        <point x="151" y="99"></point>
+        <point x="225" y="223"></point>
+        <point x="75" y="224"></point>
+      </polygon>
+    </shape>
+    <shape name="truck" rotatable="false" editableColorIndex="0">
+      <rectangle endX="195" startY="45" marked="true" color="-1920102913" endY="187" startX="4" filled="true"></rectangle>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="296" y="193"></point>
+        <point x="296" y="150"></point>
+        <point x="259" y="134"></point>
+        <point x="244" y="104"></point>
+        <point x="208" y="104"></point>
+        <point x="207" y="194"></point>
+      </polygon>
+      <rectangle endX="195" startY="60" marked="false" color="-1" endY="105" startX="195" filled="true"></rectangle>
+      <polygon color="255" filled="true" marked="false">
+        <point x="238" y="112"></point>
+        <point x="252" y="141"></point>
+        <point x="219" y="141"></point>
+        <point x="218" y="112"></point>
+      </polygon>
+      <circle x="234" y="174" marked="false" color="255" diameter="42" filled="true"></circle>
+      <rectangle endX="214" startY="185" marked="true" color="-1920102913" endY="194" startX="181" filled="true"></rectangle>
+      <circle x="144" y="174" marked="false" color="255" diameter="42" filled="true"></circle>
+      <circle x="24" y="174" marked="false" color="255" diameter="42" filled="true"></circle>
+      <circle x="24" y="174" marked="true" color="-1920102913" diameter="42" filled="false"></circle>
+      <circle x="144" y="174" marked="true" color="-1920102913" diameter="42" filled="false"></circle>
+      <circle x="234" y="174" marked="true" color="-1920102913" diameter="42" filled="false"></circle>
+    </shape>
+    <shape name="turtle" rotatable="true" editableColorIndex="0">
+      <polygon color="1504722175" filled="true" marked="false">
+        <point x="215" y="204"></point>
+        <point x="240" y="233"></point>
+        <point x="246" y="254"></point>
+        <point x="228" y="266"></point>
+        <point x="215" y="252"></point>
+        <point x="193" y="210"></point>
+      </polygon>
+      <polygon color="1504722175" filled="true" marked="false">
+        <point x="195" y="90"></point>
+        <point x="225" y="75"></point>
+        <point x="245" y="75"></point>
+        <point x="260" y="89"></point>
+        <point x="269" y="108"></point>
+        <point x="261" y="124"></point>
+        <point x="240" y="105"></point>
+        <point x="225" y="105"></point>
+        <point x="210" y="105"></point>
+      </polygon>
+      <polygon color="1504722175" filled="true" marked="false">
+        <point x="105" y="90"></point>
+        <point x="75" y="75"></point>
+        <point x="55" y="75"></point>
+        <point x="40" y="89"></point>
+        <point x="31" y="108"></point>
+        <point x="39" y="124"></point>
+        <point x="60" y="105"></point>
+        <point x="75" y="105"></point>
+        <point x="90" y="105"></point>
+      </polygon>
+      <polygon color="1504722175" filled="true" marked="false">
+        <point x="132" y="85"></point>
+        <point x="134" y="64"></point>
+        <point x="107" y="51"></point>
+        <point x="108" y="17"></point>
+        <point x="150" y="2"></point>
+        <point x="192" y="18"></point>
+        <point x="192" y="52"></point>
+        <point x="169" y="65"></point>
+        <point x="172" y="87"></point>
+      </polygon>
+      <polygon color="1504722175" filled="true" marked="false">
+        <point x="85" y="204"></point>
+        <point x="60" y="233"></point>
+        <point x="54" y="254"></point>
+        <point x="72" y="266"></point>
+        <point x="85" y="252"></point>
+        <point x="107" y="210"></point>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="119" y="75"></point>
+        <point x="179" y="75"></point>
+        <point x="209" y="101"></point>
+        <point x="224" y="135"></point>
+        <point x="220" y="225"></point>
+        <point x="175" y="261"></point>
+        <point x="128" y="261"></point>
+        <point x="81" y="224"></point>
+        <point x="74" y="135"></point>
+        <point x="88" y="99"></point>
+      </polygon>
+    </shape>
+    <shape name="wheel" rotatable="false" editableColorIndex="0">
+      <circle x="3" y="3" marked="true" color="-1920102913" diameter="294" filled="true"></circle>
+      <circle x="30" y="30" marked="false" color="255" diameter="240" filled="true"></circle>
+      <line endX="150" startY="285" marked="true" color="-1920102913" endY="15" startX="150"></line>
+      <line endX="285" startY="150" marked="true" color="-1920102913" endY="150" startX="15"></line>
+      <circle x="120" y="120" marked="true" color="-1920102913" diameter="60" filled="true"></circle>
+      <line endX="79" startY="40" marked="true" color="-1920102913" endY="269" startX="216"></line>
+      <line endX="269" startY="84" marked="true" color="-1920102913" endY="221" startX="40"></line>
+      <line endX="269" startY="216" marked="true" color="-1920102913" endY="79" startX="40"></line>
+      <line endX="221" startY="40" marked="true" color="-1920102913" endY="269" startX="84"></line>
+    </shape>
+    <shape name="wolf" rotatable="false" editableColorIndex="0">
+      <polygon color="255" filled="true" marked="false">
+        <point x="253" y="133"></point>
+        <point x="245" y="131"></point>
+        <point x="245" y="133"></point>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="2" y="194"></point>
+        <point x="13" y="197"></point>
+        <point x="30" y="191"></point>
+        <point x="38" y="193"></point>
+        <point x="38" y="205"></point>
+        <point x="20" y="226"></point>
+        <point x="20" y="257"></point>
+        <point x="27" y="265"></point>
+        <point x="38" y="266"></point>
+        <point x="40" y="260"></point>
+        <point x="31" y="253"></point>
+        <point x="31" y="230"></point>
+        <point x="60" y="206"></point>
+        <point x="68" y="198"></point>
+        <point x="75" y="209"></point>
+        <point x="66" y="228"></point>
+        <point x="65" y="243"></point>
+        <point x="82" y="261"></point>
+        <point x="84" y="268"></point>
+        <point x="100" y="267"></point>
+        <point x="103" y="261"></point>
+        <point x="77" y="239"></point>
+        <point x="79" y="231"></point>
+        <point x="100" y="207"></point>
+        <point x="98" y="196"></point>
+        <point x="119" y="201"></point>
+        <point x="143" y="202"></point>
+        <point x="160" y="195"></point>
+        <point x="166" y="210"></point>
+        <point x="172" y="213"></point>
+        <point x="173" y="238"></point>
+        <point x="167" y="251"></point>
+        <point x="160" y="248"></point>
+        <point x="154" y="265"></point>
+        <point x="169" y="264"></point>
+        <point x="178" y="247"></point>
+        <point x="186" y="240"></point>
+        <point x="198" y="260"></point>
+        <point x="200" y="271"></point>
+        <point x="217" y="271"></point>
+        <point x="219" y="262"></point>
+        <point x="207" y="258"></point>
+        <point x="195" y="230"></point>
+        <point x="192" y="198"></point>
+        <point x="210" y="184"></point>
+        <point x="227" y="164"></point>
+        <point x="242" y="144"></point>
+        <point x="259" y="145"></point>
+        <point x="284" y="151"></point>
+        <point x="277" y="141"></point>
+        <point x="293" y="140"></point>
+        <point x="299" y="134"></point>
+        <point x="297" y="127"></point>
+        <point x="273" y="119"></point>
+        <point x="270" y="105"></point>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="-1" y="195"></point>
+        <point x="14" y="180"></point>
+        <point x="36" y="166"></point>
+        <point x="40" y="153"></point>
+        <point x="53" y="140"></point>
+        <point x="82" y="131"></point>
+        <point x="134" y="133"></point>
+        <point x="159" y="126"></point>
+        <point x="188" y="115"></point>
+        <point x="227" y="108"></point>
+        <point x="236" y="102"></point>
+        <point x="238" y="98"></point>
+        <point x="268" y="86"></point>
+        <point x="269" y="92"></point>
+        <point x="281" y="87"></point>
+        <point x="269" y="103"></point>
+        <point x="269" y="113"></point>
+      </polygon>
+    </shape>
+    <shape name="x" rotatable="false" editableColorIndex="0">
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="270" y="75"></point>
+        <point x="225" y="30"></point>
+        <point x="30" y="225"></point>
+        <point x="75" y="270"></point>
+      </polygon>
+      <polygon color="-1920102913" filled="true" marked="true">
+        <point x="30" y="75"></point>
+        <point x="75" y="30"></point>
+        <point x="270" y="225"></point>
+        <point x="225" y="270"></point>
+      </polygon>
+    </shape>
+  </turtleShapes>
+  <linkShapes>
+    <shape name="default" curviness="0.0">
+      <lines>
+        <line x="-0.2" visible="false">
+          <dash value="0.0"></dash>
+          <dash value="1.0"></dash>
+        </line>
+        <line x="0.0" visible="true">
+          <dash value="1.0"></dash>
+          <dash value="0.0"></dash>
+        </line>
+        <line x="0.2" visible="false">
+          <dash value="0.0"></dash>
+          <dash value="1.0"></dash>
+        </line>
+      </lines>
+      <indicator>
+        <shape name="link direction" rotatable="true" editableColorIndex="0">
+          <line endX="90" startY="150" marked="true" color="-1920102913" endY="180" startX="150"></line>
+          <line endX="210" startY="150" marked="true" color="-1920102913" endY="180" startX="150"></line>
+        </shape>
+      </indicator>
+    </shape>
+  </linkShapes>
+  <previewCommands>setup repeat 75 [ go ]</previewCommands>
+  <resources>
+    <resource name="contributor-covenant-2-1-badge" extension="png">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</resource>
+    <resource name="github-sponsor-badge" extension="png">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</resource>
+    <resource name="gplv3-license-badge" extension="png">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</resource>
+    <resource name="sustentarea-logo" extension="png">iVBORw0KGgoAAAANSUhEUgAAAGgAAABkCAIAAADlvOKNAAAACXBIWXMAABcSAAAXEgFnn9JSAAAFFmlUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSLvu78iIGlkPSJXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQiPz4gPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iQWRvYmUgWE1QIENvcmUgNS42LWMxNDggNzkuMTY0MDM2LCAyMDE5LzA4LzEzLTAxOjA2OjU3ICAgICAgICAiPiA8cmRmOlJERiB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIgeG1sbnM6cGhvdG9zaG9wPSJodHRwOi8vbnMuYWRvYmUuY29tL3Bob3Rvc2hvcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RFdnQ9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZUV2ZW50IyIgeG1wOkNyZWF0b3JUb29sPSJBZG9iZSBQaG90b3Nob3AgMjEuMCAoV2luZG93cykiIHhtcDpDcmVhdGVEYXRlPSIyMDI0LTA3LTAzVDAxOjM2OjU0LTAzOjAwIiB4bXA6TW9kaWZ5RGF0ZT0iMjAyNC0wOS0xNFQwMzo1NjoyMC0wMzowMCIgeG1wOk1ldGFkYXRhRGF0ZT0iMjAyNC0wOS0xNFQwMzo1NjoyMC0wMzowMCIgZGM6Zm9ybWF0PSJpbWFnZS9wbmciIHBob3Rvc2hvcDpDb2xvck1vZGU9IjMiIHBob3Rvc2hvcDpJQ0NQcm9maWxlPSJzUkdCIElFQzYxOTY2LTIuMSIgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDplNmQ3MDQyNy02MTZjLTg3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</resource>
+    <resource name="cnpq-logo" extension="png">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</resource>
+  </resources>
+</model>

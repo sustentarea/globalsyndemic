@@ -1,0 +1,42 @@
+; __includes ["combine.nls"]
+; extensions [ls]
+
+; globals[
+;   baseline-period
+;   index
+;   month
+;   patch-coordinates
+;   range-pxcor
+;   range-pycor
+;   settings
+;   foodclim-ls-model
+;   year
+; ]
+
+to setup-variables
+  set index [index] ls:of foodclim-ls-model
+  set range-pxcor (range min-pxcor (max-pxcor + 1))
+  set range-pycor (range min-pycor (max-pycor + 1))
+  set patch-coordinates combine range-pxcor range-pycor
+  set year [year] ls:of foodclim-ls-model
+  set month [month] ls:of foodclim-ls-model
+
+  let month-num str-to-num-month month
+
+  set baseline-period (word
+    month " " year
+    " to "
+    (num-to-str-month (month-num - 1)) " " year
+  )
+
+  set plot-x-max-range 2 ; ticks + 1
+
+  set settings (list
+    data-series
+    data-resolution
+    global-climate-model
+    shared-socioeconomic-pathway
+    start-month
+    start-year
+  )
+end

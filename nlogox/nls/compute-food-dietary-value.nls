@@ -1,0 +1,10 @@
+; __includes ["compute-dietary-value.nls"]
+
+to compute-food-dietary-value
+  compute-dietary-value "grains"
+  compute-dietary-value "protein"
+  compute-dietary-value "dairy"
+  compute-dietary-value "non-leafy-veg"
+  compute-dietary-value "leafy-veg"
+  compute-dietary-value "fruits"
+end

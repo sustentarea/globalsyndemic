@@ -1,0 +1,17 @@
+; __includes ["check-logical.nls" "check-string.nls" "check-true.nls"]
+; globals [add-random?]
+
+to-report compute-random-mult [#random-threshold #add-random?]
+  assert-number #random-threshold
+  assert-logical #add-random?
+
+  ifelse (is-true? #add-random?) [
+    ifelse (random-float 1 < 0.5) [
+      report 1 - random-float #random-threshold
+    ] [
+      report 1 + random-float #random-threshold
+    ]
+  ] [
+    report 1
+  ]
+end

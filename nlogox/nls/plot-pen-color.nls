@@ -1,0 +1,15 @@
+; __includes ["check-integerg.nls"]
+
+to-report plot-pen-color [#color]
+  assert-integer #color
+
+  ifelse (
+    (flip-data-series? = true) and
+    (data-series != "Future climate data") and
+    ([data-series] ls:of foodclim-ls-model = "Future climate data")
+  ) [
+    report #color + 3
+  ] [
+    report #color
+  ]
+end

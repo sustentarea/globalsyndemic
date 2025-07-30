@@ -1,0 +1,38 @@
+; extensions [ls]
+
+; globals [
+;   prec-ls-model
+;   tmax-ls-model
+;   foodclim-ls-model
+;   data-series
+;   data-resolution
+;   global-climate-model
+;   shared-socioeconomic-pathway
+;   start-year
+;   start-month
+;   foodclim-path
+; ]
+
+to setup-foodclim
+  ls:create-models 1 foodclim-path
+
+  set foodclim-ls-model 0
+
+  ls:let #data-series data-series
+  ls:let #data-resolution data-resolution
+  ls:let #global-climate-model global-climate-model
+  ls:let #shared-socioeconomic-pathway shared-socioeconomic-pathway
+  ls:let #year start-year
+  ls:let #month start-month
+
+  ls:ask ls:models [
+    set data-series #data-series
+    set data-resolution #data-resolution
+    set global-climate-model #global-climate-model
+    set shared-socioeconomic-pathway #shared-socioeconomic-pathway
+    set start-month #month
+    set start-year #year
+    
+    setup seed
+  ]
+end

@@ -1,0 +1,173 @@
+{
+  "@context": "https://w3id.org/codemeta/3.0",
+  "@type": "SoftwareSourceCode",
+  "identifier": "Global Syndemic",
+  "dateCreated": "2025-07-01",
+  "applicationCategory": "Agent-based modeling",
+  "applicationSubCategory": "Food yield modeling",
+  "name": "Global syndemic: Simulating climate change effects on child nutrition in Brazil",
+  "author": [
+    {
+      "@type": "Person",
+      "familyName": "Vartanian",
+      "givenName": "Daniel",
+      "email": "hi@danielvartan.com",
+      "affiliation": {
+        "@type": "Organization",
+        "name": "University of São Paulo",
+        "url": "https://www.usp.br"
+      },
+      "@id": "https://orcid.org/0000-0001-7782-759X"
+    },
+    {
+      "@type": "Person",
+      "familyName": "Leandro",
+      "givenName": "Garcia",
+      "email": "l.garcia@qub.ac.uk",
+      "affiliation": {
+        "@type": "Organization",
+        "name": "Queen's University Belfast",
+        "url": "https://www.qub.ac.uk"
+      },
+      "@id": "https://orcid.org/0000-0001-5947-2617"
+    },
+    {
+      "@type": "Person",
+      "familyName": "Carvalho",
+      "givenName": "Aline Martins de",
+      "email": "alinenutri@usp.br",
+      "affiliation": {
+        "@type": "Organization",
+        "name": "University of São Paulo",
+        "url": "https://www.usp.br"
+      },
+      "@id": "https://orcid.org/0000-0002-4900-5609"
+    }
+  ],
+  "funder": [
+    {
+      "@type": "Organization",
+      "name": "Department of Science and Technology of the Secretariat of Science, Technology, and Innovation and of the Health Economic-Industrial Complex (SECTICS) of the Ministry of Health of Brazil",
+      "@id": "https://www.gov.br/saude/pt-br/composicao/sectics/"
+    },
+    {
+      "@type": "Organization",
+      "name": "Conselho Nacional de Desenvolvimento Científico e Tecnológico - Brazil (CNPq)",
+      "@id": "https://www.gov.br/cnpq/"
+    }
+  ],
+  "funding": "CNPq 444588/2023-0",
+  "provider": {
+    "@id": "https://www.fsp.usp.br/sustentarea/",
+    "@type": "Organization",
+    "name": "Sustentarea",
+    "url": "https://www.fsp.usp.br/sustentarea/"
+  },
+  "copyrightHolder": {
+    "@type": "Person",
+    "familyName": "Vartanian",
+    "givenName": "Daniel",
+    "email": "hi@danielvartan.com",
+    "@id": "https://orcid.org/0000-0001-7782-759X"
+  },
+  "maintainer": {
+    "@type": "Person",
+    "familyName": "Vartanian",
+    "givenName": "Daniel",
+    "email": "hi@danielvartan.com",
+    "@id": "https://orcid.org/0000-0001-7782-759X"
+  },
+  "description": "{GlobalSyndemic} is a NetLogo model designed to simulate how climate change can affect the health and nutrition of children under 5 years old in Brazil.",
+  "keywords": [
+    "Agent-Based Modeling",
+    "Climate Change",
+    "Climate Model Integration",
+    "Climate Projections",
+    "Climate Simulation",
+    "CMIP6",
+    "Complex Systems",
+    "Complexity Science",
+    "Environmental Sciences",
+    "Environmental Simulation",
+    "FoodClim",
+    "Food Systems",
+    "Food Yield",
+    "Food Security",
+    "Future Climate Scenarios",
+    "Geospatial Analysis",
+    "Global Syndemic",
+    "Historical Climate Data",
+    "LevelSpace",
+    "LogoClim",
+    "Models",
+    "NetLogo",
+    "Parallel Execution",
+    "Raster Data",
+    "Reproducible Research",
+    "Shared Socioeconomic Pathways",
+    "Simulations",
+    "Spatial Analysis",
+    "Spatial Resolution",
+    "SSPs",
+    "Time Series",
+    "WorldClim"
+  ],
+  "license": "https://www.gnu.org/licenses/gpl-3.0",
+  "codeRepository": "https://github.com/sustentarea/global-syndemic",
+  "issueTracker": "https://github.com/sustentarea/global-syndemic/issues",
+  "relatedLink": [
+    "https://doi.org/10.17605/OSF.IO/852KG"
+  ],
+  "programmingLanguage": {
+    "@type": "ComputerLanguage",
+    "name": "NetLogo",
+    "version": "7.0.0",
+    "url": "https://www.netlogo.org"
+  },
+  "runtimePlatform": "NetLogo version 7.0.0 (2025)",
+  "operatingSystem": [
+    "Linux",
+    "macOS",
+    "Windows"
+  ],
+  "softwareRequirements": [
+    {
+      "@type": "SoftwareApplication",
+      "name": "NetLogo",
+      "version": ">= 7.0.0",
+      "provider": {
+        "@id": "https://www.netlogo.org",
+        "@type": "Organization",
+        "name": "Center for Connected Learning and Computer-Based Modeling (CCL), Northwestern University",
+        "url": "https://www.netlogo.org"
+      },
+      "sameAs": "https://www.netlogo.orgdownload.shtml"
+    },
+    {
+      "name": "NetLogo LevelSpace extension",
+      "version": ">= 2.4.0",
+      "provider": {
+        "@id": "https://www.netlogo.org",
+        "@type": "Organization",
+        "name": "Center for Connected Learning and Computer-Based Modeling (CCL), Northwestern University",
+        "url": "https://www.netlogo.org"
+      },
+      "sameAs": "https://github.com/NetLogo/LevelSpace/"
+    },
+    {
+      "name": "NetLogo String extension",
+      "version": ">= 1.2.0",
+      "provider": {
+        "@id": "https://www.netlogo.org",
+        "@type": "Organization",
+        "name": "Center for Connected Learning and Computer-Based Modeling (CCL), Northwestern University",
+        "url": "https://www.netlogo.org"
+      },
+      "sameAs": "https://github.com/NetLogo/String-Extension/"
+    }
+  ],
+  "developmentStatus": "active",
+  "readme": "https://github.com/sustentarea/global-syndemic/blob/main/README.md",
+  "releaseNotes": "https://github.com/sustentarea/global-syndemic/blob/main/NEWS.md",
+  "version": "0.0.0.9000"
+}

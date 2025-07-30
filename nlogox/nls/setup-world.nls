@@ -1,0 +1,11 @@
+;  globals [foodclim-ls-model]
+
+to setup-world
+  let min-width [min-pxcor] ls:of foodclim-ls-model
+  let max-width [max-pxcor] ls:of foodclim-ls-model
+  let min-height [min-pycor] ls:of foodclim-ls-model
+  let max-height [max-pycor] ls:of foodclim-ls-model
+
+  resize-world min-width max-width min-height max-height
+  set-patch-size [patch-size] ls:of foodclim-ls-model
+end

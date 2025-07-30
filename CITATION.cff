@@ -1,0 +1,65 @@
+cff-version: 1.2.0
+title: "Global syndemic: Simulating climate change effects on child nutrition in Brazil"
+message: >-
+  If you use this software, please cite it using the metadata from this file.
+type: software
+authors:
+  - given-names: Daniel
+    family-names: Vartanian
+    email: hi@danielvartan.com
+    affiliation: University of São Paulo
+    orcid: 'https://orcid.org/0000-0001-7782-759X'
+  - given-names: Leandro
+    family-names: Garcia
+    email: l.garcia@qub.ac.uk
+    affiliation: Queen's University Belfast
+    orcid: 'https://orcid.org/0000-0001-5947-2617'
+  - given-names: Aline Martins
+    family-names: Carvalho
+    email: alinenutri@usp.br
+    affiliation: University of São Paulo
+    orcid: 'https://orcid.org/0000-0002-4900-5609'
+abstract: >-
+  {GlobalSyndemic} is a NetLogo model designed to simulate how climate change
+  can affect the health and nutrition of children under 5 years old in Brazil.
+keywords:
+  - Agent-Based Modeling
+  - Climate Change
+  - Climate Model Integration
+  - Climate Projections
+  - Climate Simulation
+  - CMIP6
+  - Complex Systems
+  - Complexity Science
+  - Data Interoperability
+  - FoodClim
+  - Food Systems
+  - Food Yield
+  - Food Security
+  - Environmental Sciences
+  - Environmental Simulation
+  - Future Climate Scenarios
+  - Geospatial Analysis
+  - Historical Climate Data
+  - LevelSpace
+  - LogoClim
+  - Models
+  - NetLogo
+  - Parallel Execution
+  - Raster Data
+  - Reproducible Research
+  - Shared Socioeconomic Pathways
+  - Simulations
+  - Spatial Analysis
+  - Spatial Resolution
+  - SSPs
+  - Time Series
+  - WorldClim
+identifiers:
+  - type: doi
+    value: 10.17605/OSF.IO/EAPZU
+    description: OSF Research Compendium
+repository-code: 'https://github.com/sustentarea/global-syndemic'
+repository: 'https://doi.org/10.17605/OSF.IO/852KG'
+repository-artifact: 'https://doi.org/10.17605/OSF.IO/852KG'
+license: GPLv3
