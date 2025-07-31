@@ -1,11 +1,11 @@
 {
   "@context": "https://w3id.org/codemeta/3.0",
   "@type": "SoftwareSourceCode",
-  "identifier": "Global Syndemic",
+  "identifier": "GlobalSyndemic",
   "dateCreated": "2025-07-01",
   "applicationCategory": "Agent-based modeling",
   "applicationSubCategory": "Food yield modeling",
-  "name": "Global syndemic: Simulating climate change effects on child nutrition in Brazil",
+  "name": "GlobalSyndemic: Climate change effects on child nutrition in Brazil",
   "author": [
     {
       "@type": "Person",

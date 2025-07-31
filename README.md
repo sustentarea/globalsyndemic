@@ -1,4 +1,4 @@
-# global-syndemic
+# GlobalSyndemic
 
 <!-- Quarto render -->
 
@@ -15,7 +15,7 @@ GPLv3](https://img.shields.io/badge/license-GPLv3-bd0000.svg)](https://www.gnu.o
 
 ## Overview
 
-`Global Syndemic` is a [NetLogo](https://www.netlogo.org) model designed
+`GlobalSyndemic` is a [NetLogo](https://www.netlogo.org) model designed
 to simulate how climate change can affect the health and nutrition of
 children under 5 years old in Brazil. It is part of a larger project
 called: *Global syndemic: the impact of anthropogenic climate change on
@@ -38,9 +38,9 @@ Refer to the [`LogoClim`](https://github.com/sustentarea/logoclim) and
 [`FoodClim`](https://github.com/sustentarea/foodclim) installation
 guides for detailed steps on installing the required dependencies.
 
-Once both are installed, you can run the `Global Syndemic` model by
+Once both are installed, you can run the `GlobalSyndemic` model by
 specifying the path to your `LogoClim` and `FoodClim` installation in
-the `Global Syndemic` interface.
+the `GlobalSyndemic` interface.
 
 Refer to the `Info` tab in the model for additional details.
 
@@ -50,22 +50,22 @@ If you use this model in your research, please cite it to acknowledge
 the effort invested in its development and maintenance. Your citation
 helps support the ongoing improvement of the model.
 
-To cite `Global Syndemic` in publications please use the following
+To cite `GlobalSyndemic` in publications please use the following
 format:
 
-Vartanian, D., Garcia, L., & Carvalho, A. M. (2025). *Global syndemic:
-Simulating climate change effects on child nutrition in Brazil*
-\[Computer software\]. <https://doi.org/10.17605/OSF.IO/852KG>
+Vartanian, D., Garcia, L., & Carvalho, A. M. (2025). *GlobalSyndemic:
+Climate change effects on child nutrition in Brazil* \[Computer
+software\]. <https://doi.org/10.17605/OSF.IO/852KG>
 
 A BibTeX entry for LaTeX users is:
 
 ``` latex
 @Misc{vartanian2025,
-  title = {Global syndemic: Simulating climate change effects on child nutrition in Brazil},
+  title = {GlobalSyndemic: Climate change effects on child nutrition in Brazil},
   author = {{Daniel Vartanian} and {Leandro Garcia} and {Aline Martins de Carvalho}},
   year = {2025},
   doi = {https://doi.org/10.17605/OSF.IO/852KG},
-  note = {NetLogo model}
+  note = {Computer software}
 }
 ```
 
@@ -88,7 +88,7 @@ guide](https://style.tidyverse.org/) whenever possible.
 ``` text
 Copyright (C) 2025 Daniel Vartanian
 
-Global Syndemic is free software: you can redistribute it and/or modify it
+GlobalSyndemic is free software: you can redistribute it and/or modify it
 under the terms of the GNU General Public License as published by the Free
 Software Foundation, either version 3 of the License, or (at your option) any
 later version.
@@ -143,7 +143,7 @@ the data, and the many funding agencies that support CMIP6 and ESGF.
     </td>
     <td width="70%">
       <p>
-        This work was developed with support from the
+        This work was developed with support from the 
         <a href="https://www.fsp.usp.br/sustentarea/">Sustentarea</a>
          Research and Extension Center at the University of São Paulo (<a href="https://www5.usp.br/">USP</a>).
       </p>
@@ -164,10 +164,10 @@ the data, and the many funding agencies that support CMIP6 and ESGF.
     </td>
     <td width="70%">
       <p>
-        This work was supported by the Department of Science and
-        Technology of the Secretariat of Science, Technology, and Innovation
-        and of the Health Economic-Industrial Complex (<a href="https://www.gov.br/saude/pt-br/composicao/sectics/">SECTICS</a>)  of the <a href="https://www.gov.br/saude/pt-br/composicao/sectics/">Ministry of Health</a>
-        of Brazil, and the National Council for Scientific and
+        This work was supported by the Department of Science and 
+        Technology of the Secretariat of Science, Technology, and Innovation 
+        and of the Health Economic-Industrial Complex (<a href="https://www.gov.br/saude/pt-br/composicao/sectics/">SECTICS</a>)  of the <a href="https://www.gov.br/saude/pt-br/composicao/sectics/">Ministry of Health</a> 
+        of Brazil, and the National Council for Scientific and 
         Technological Development (<a href="https://www.gov.br/cnpq/">CNPq</a>) (grant no. 444588/2023-0).
       </p>
     </td>

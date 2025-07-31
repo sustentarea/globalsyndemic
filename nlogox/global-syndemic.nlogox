@@ -106,7 +106,7 @@ to setup [#seed]
   ls:reset
 
   assert-start-year
-  
+
   setup-foodclim
 
   setup-world
@@ -145,7 +145,7 @@ to go [#tick? #wait?]
       stop
     ]
   ]
- 
+
   set index [index] ls:of foodclim-ls-model
   set year [year] ls:of foodclim-ls-model
   set month [month] ls:of foodclim-ls-model
@@ -550,7 +550,7 @@ plot 1</update>
     <slider x="320" step="0.00001" y="1370" max="5" width="250" display="leafy-veg-lon-beta" height="50" min="-5" direction="Horizontal" default="0.5545" variable="leafy-veg-lon-beta" units="kg/ha per deg."></slider>
     <slider x="65" step="0.1" y="1425" max="1" width="250" display="leafy-veg-random-threshold" height="50" min="0" direction="Horizontal" default="0.3" variable="leafy-veg-random-threshold"></slider>
     <note x="700" y="695" backgroundDark="0" fontSize="14" width="300" markdown="false" height="20" textColorDark="-1" textColorLight="-16777216" backgroundLight="0">Parameters for Dietary Intake Response</note>
-    <plot x="1165" autoPlotX="true" yMax="0.0" autoPlotY="true" yAxis="yield / base." y="340" xMin="0.0" height="260" legend="true" xMax="0.0" yMin="0.0" width="505" xAxis="Months" display="Children nutrition">
+    <plot x="1165" autoPlotX="true" yMax="0.0" autoPlotY="true" yAxis="Count" y="340" xMin="0.0" height="260" legend="true" xMax="0.0" yMin="0.0" width="505" xAxis="Months" display="Children Nutrition">
       <setup></setup>
       <update>set-plot-x-range 0 plot-x-max-range</update>
       <pen interval="1.0" mode="0" display="Healthy Nutrition" color="-13345367" legend="true">
@@ -576,15 +576,17 @@ plot 0</update>
       </pen>
     </plot>
   </widgets>
-  <info><![CDATA[# FOODCLIM: FOOD YIELD RESPONSES TO CLIMATE CHANGE IN NETLOGO
+  <info><![CDATA[# GLOBAL SYNDEMIC: CLIMATE CHANGE EFFECTS ON CHILD NUTRITION IN BRAZIL
 
-You are currently using the developer version of `FoodClim`.
+You are currently using the developer version of `GlobalSyndemic`.
+
+The model takes some time to run each step. We are working on improving the performance, but please be patient while it runs.
 
 ## HOW TO USE IT
 
-Refer to the [`LogoClim`](https://github.com/sustentarea/logoclim) installation guide for detailed steps on installing the required dependencies.
+Refer to the [`LogoClim`](https://github.com/sustentarea/logoclim) and [`FoodClim`](https://github.com/sustentarea/foodclim) installation guides for detailed steps on installing the required dependencies.
 
-Once `LogoClim` is installed, you can run the `FoodClim` model by specifying the path to your `LogoClim` installation in the `FoodClim` interface. This allows `FoodClim` to access climate data provided by `LogoClim` during simulations.
+Once both are installed, you can run the `GlobalSyndemic` model by specifying the path to your `LogoClim` and `FoodClim` installation in the `GlobalSyndemic` interface.
 
 ### BEHAVIOR NOTES
 
@@ -616,19 +618,19 @@ This ensures that patches with higher initial values receive proportionally larg
 
 If you use this model in your research, please cite it to acknowledge the effort invested in its development and maintenance. Your citation helps support the ongoing improvement of the model.
 
-To cite `FoodClim` in publications please use the following format:
+To cite `GlobalSyndemic` in publications please use the following format:
 
-Vartanian, D., Garcia, L., & Carvalho, A. M. (2025). *FoodClim: Food yield responses to climate change in NetLogo* [Computer software]. <https://doi.org/10.17605/OSF.IO/ZGVMP>
+Vartanian, D., Garcia, L., & Carvalho, A. M. (2025). *GlobalSyndemic: Climate change effects on child nutrition in Brazil* [Computer software]. <https://doi.org/10.17605/OSF.IO/852KG>
 
 A BibTeX entry for LaTeX users is:
 
 ```latex
 @Misc{vartanian2025,
-  title = {FoodClim: Food yield responses to climate change in NetLogo},
+  title = {GlobalSyndemic: Climate change effects on child nutrition in Brazil},
   author = {{Daniel Vartanian} and {Leandro Garcia} and {Aline Martins de Carvalho}},
   year = {2025},
-  doi = {https://doi.org/10.17605/OSF.IO/ZGVMP},
-  note = {NetLogo model}
+  doi = {https://doi.org/10.17605/OSF.IO/852KG},
+  note = {Computer software}
 }
 ```
 
@@ -636,18 +638,14 @@ A BibTeX entry for LaTeX users is:
 
 ![Contributor Covenant 2.1 badge](contributor-covenant-2-1-badge)
 
-Contributions are welcome! Whether it's reporting bugs, suggesting features, or improving documentation, your input is valuable.
+Contributions are welcome! Whether you want to report bugs, suggest features, or improve the code or documentation, your input is highly valued.
 
-![GitHub Sponsor badge](github-sponsor-badge)
-
-You can also support the development of `FoodClim` by becoming a sponsor. Click [here](https://github.com/sponsors/danielvartan) to make a donation. Please mention `FoodClim` in your donation message.
+When contributing code, please follow the [tidy design principles](https://design.tidyverse.org/) and the [tidyverse style guide](https://style.tidyverse.org/) whenever possible.
 
 ## IMPORTANT LINKS
 
-- OSF repository: https://doi.org/10.17605/OSF.IO/ZGVMP
-- Code repository: https://github.com/sustentarea/foodclim
-- Latest release: https://github.com/sustentarea/foodclim/releases/latest
-- Support development: https://github.com/sponsors/danielvartan
+- OSF repository: https://doi.org/10.17605/OSF.IO/852KG
+- Code repository: https://github.com/sustentarea/global-syndemic
 
 ## LICENSE
 
@@ -656,10 +654,9 @@ You can also support the development of `FoodClim` by becoming a sponsor. Click 
 ```text
 Copyright (C) 2025 Daniel Vartanian
 
-FoodClim is free software: you can redistribute it and/or modify it under the
-terms of the GNU General Public License as published by the Free Software
-Foundation, either version 3 of the License, or (at your option) any later
-version.
+GlobalSyndemic is free software: you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option)
+any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT ANY
 WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
@@ -689,7 +686,7 @@ This work was supported by the Department of Science and Technology of the Secre
 
 ## REFERENCES
 
-Firpo, M. Â. F., Guimarães, B. dos S., Dantas, L. G., Silva, M. G. B. da, Alves, L. M., Chadwick, R., Llopart, M. P., & Oliveira, G. S. de. (2022). Assessment of CMIP6 models' performance in simulating present-day climate in Brazil. *Frontiers in Climate*, *4*. <https://doi.org/10.3389/fclim.2022.948499>
+Vartanian, D., Garcia, L. M. T., & Carvalho, A. M. (2025). *FoodClim: Food yield responses to climate change in NetLogo* [Computer software]. <https://doi.org/10.17605/OSF.IO/ZGVMP>
 
 Vartanian, D., Garcia, L. M. T., & Carvalho, A. M. (2025). *LogoClim: WorldClim in NetLogo* [Computer software]. <https://doi.org/10.17605/OSF.IO/EAPZU>]]></info>
   <turtleShapes>
